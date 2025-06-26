@@ -1,0 +1,211 @@
+/*----------------genealogy-scroll----------*/
+
+.genealogy-scroll::-webkit-scrollbar {
+    width: 5px;
+    height: 8px;
+}
+
+.genealogy-scroll::-webkit-scrollbar-track {
+    border-radius: 10px;
+    background-color: #e4e4e4;
+}
+
+.genealogy-scroll::-webkit-scrollbar-thumb {
+    background: #212121;
+    border-radius: 10px;
+    transition: 0.5s;
+}
+
+.genealogy-scroll::-webkit-scrollbar-thumb:hover {
+    background: #4361ee;
+    transition: 0.5s;
+}
+
+/*----------------genealogy-tree----------*/
+.genealogy-body {
+    white-space: nowrap;
+    width: 100%;
+    min-height: 300px;
+    overflow: auto;
+    scrollbar-color: #4361ee gray;
+    scrollbar-width: thin;
+    padding: 10px;
+    text-align: center;
+    border: 2px dashed gray;
+    border-radius: 10px;
+    background-color: rgba(204, 204, 204, 0.13);
+}
+
+.genealogy-tree {
+    display: inline-block;
+}
+
+.genealogy-tree ul {
+    padding-top: 20px;
+    position: relative;
+    padding-left: 0px;
+    display: flex;
+    justify-content: center;
+}
+
+.genealogy-tree li {
+    float: left;
+    text-align: center;
+    list-style-type: none;
+    position: relative;
+    padding: 20px 5px 0 5px;
+}
+
+.genealogy-tree li::before,
+.genealogy-tree li::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    right: 50%;
+    border-top: 2px solid #ccc;
+    width: 50%;
+    height: 18px;
+}
+
+.genealogy-tree li::after {
+    right: auto;
+    left: 50%;
+    border-left: 2px solid #ccc;
+}
+
+.genealogy-tree li:only-child::after,
+.genealogy-tree li:only-child::before {
+    display: none;
+}
+
+.genealogy-tree li:only-child {
+    padding-top: 0;
+}
+
+.genealogy-tree li:first-child::before,
+.genealogy-tree li:last-child::after {
+    border: 0 none;
+}
+
+.genealogy-tree li:last-child::before {
+    border-right: 2px solid #ccc;
+    border-radius: 0 5px 0 0;
+    -webkit-border-radius: 0 5px 0 0;
+    -moz-border-radius: 0 5px 0 0;
+}
+
+.genealogy-tree li:first-child::after {
+    border-radius: 5px 0 0 0;
+    -webkit-border-radius: 5px 0 0 0;
+    -moz-border-radius: 5px 0 0 0;
+}
+
+.genealogy-tree ul ul::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 50%;
+    border-left: 2px solid #ccc;
+    width: 0;
+    height: 20px;
+}
+
+.genealogy-tree li a {
+    text-decoration: none;
+    color: #666;
+    font-family: arial, verdana, tahoma;
+    font-size: 11px;
+    display: inline-block;
+    border-radius: 5px;
+    -webkit-border-radius: 5px;
+    -moz-border-radius: 5px;
+}
+
+.genealogy-tree li a:hover + ul li::after,
+.genealogy-tree li a:hover + ul li::before,
+.genealogy-tree li a:hover + ul::before,
+.genealogy-tree li a:hover + ul ul::before {
+    border-color: #4361ee;
+}
+
+/*--------------memeber-card-design----------*/
+.member-view-box {
+    text-align: center;
+    border-radius: 4px;
+    position: relative;
+    border: 2px solid tomato;
+}
+
+.member-image {
+    width: 100%;
+    height: 60px;
+    position: relative;
+    margin: auto;
+    display: block;
+    padding: 10px;
+}
+
+.member-image img {
+    width: 60px;
+    height: 60px;
+    border-radius: 6px;
+    background-color: #000;
+    z-index: 1;
+}
+
+li[data-type="admin"] .member-details {
+    padding: 10px;
+    border-top: 2px solid #e7515a;
+    background: #e7515a;
+}
+
+li[data-type="admin"] .member-view-box {
+    border: 2px solid #e7515a;
+}
+
+li[data-type="main_distributor"] .member-details {
+    padding: 10px;
+    border-top: 2px solid #805dca;
+    background: #805dca;
+}
+
+li[data-type="main_distributor"] .member-view-box {
+    border: 2px solid #805dca;
+}
+
+li[data-type="distributor"] .member-details {
+    padding: 10px;
+    border-top: 2px solid #3b3f5c;
+    background: #3b3f5c;
+}
+
+li[data-type="distributor"] .member-view-box {
+    border: 2px solid #3b3f5c;
+}
+
+li[data-type="retailer"] .member-details {
+    padding: 10px;
+    border-top: 2px solid #4361ee;
+    background: #4361ee;
+}
+
+li[data-type="retailer"] .member-view-box {
+    border: 2px solid #4361ee;
+}
+
+.member-details h3 {
+    font-size: 12px;
+    margin-top: 5px;
+    font-weight: 600;
+    margin-bottom: 0;
+}
+
+.member-details p {
+    margin-bottom: 0;
+    font-size: 10px;
+    font-weight: 600;
+}
+
+.border-4 {
+    border-width: 2px !important;
+}
