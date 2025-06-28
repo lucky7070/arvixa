@@ -205,10 +205,10 @@ class PanCardController extends Controller
                 return view('my_services.pan-card.confirm', compact('requestData', 'pan_card', 'submit_url'));
             } else {
                 $apiData = $res['data'];
-                return redirect()->back()->withInput()->with('error', "validation error.");
+                return back()->withInput()->with('error', "validation error.");
             }
         } else {
-            return redirect()->back()->withInput()->with('error', "Oops.. There is Some error.");
+            return back()->withInput()->with('error', "Oops.. There is Some error.");
         }
     }
 
@@ -325,10 +325,10 @@ class PanCardController extends Controller
                 return view('my_services.pan-card.confirm', compact('requestData', 'pan_card', 'submit_url'));
             } else {
                 $apiData = $res['data'];
-                return redirect()->back()->withInput()->with('error', "validation error.");
+                return back()->withInput()->with('error', "validation error.");
             }
         } else {
-            return redirect()->back()->withInput()->with('error', "Oops.. There is Some error.");
+            return back()->withInput()->with('error', "Oops.. There is Some error.");
         }
     }
 
@@ -583,11 +583,11 @@ class PanCardController extends Controller
         $sheet->getStyle('A1');
 
         $spreadsheet->setActiveSheetIndex(0);
-        $fileName = "PanCardsRetailerExport.xlsx";
+        $fileName = "PanCards Retailer Export.xlsx";
         $writer = new Xlsx($spreadsheet);
 
         header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-        header('Content-Disposition: attachment; filename="' . urlencode($fileName) . '"');
+        header('Content-Disposition: attachment; filename="' . ($fileName) . '"');
         header('Cache-Control: max-age=0');
         exit($writer->save('php://output'));
     }

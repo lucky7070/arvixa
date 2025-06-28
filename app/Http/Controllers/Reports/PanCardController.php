@@ -103,7 +103,7 @@ class PanCardController extends Controller
             $startDate = Carbon::parse(request('start_date'));
             $endDate = Carbon::parse(request('end_date'))->endOfDay();
             if ($startDate->diffInDays($endDate) > 90) {
-                return redirect()->back()->withInput()->with('error', "Report can be exported for max 90 Days.");
+                return back()->withInput()->with('error', "Report can be exported for max 90 Days.");
             }
         } else {
             $startDate  = Carbon::now()->startOfDay()->subDays(7);

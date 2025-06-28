@@ -24,6 +24,7 @@ class ServiceUsesLog extends Model
         'sale_rate',
         'main_distributor_id',
         'distributor_id',
+        'retailer_commission',
         'main_distributor_commission',
         'distributor_commission',
         'is_refunded',

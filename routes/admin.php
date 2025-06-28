@@ -127,7 +127,7 @@ Route::middleware(['auth', 'permission', 'authCheck'])->group(function () {
     Route::get('payment-request/export', [PaymentRequestController::class, 'payment_request_export'])->name('payment-request.export')->middleware('isAllow:109,can_view');
 
 
-     // ----------------------- UPI Payment Routes ----------------------------------------------------
+    // ----------------------- UPI Payment Routes ----------------------------------------------------
     Route::get('upi-payment', [UPIPaymentController::class, 'upi_payment'])->name('upi-payment')->middleware('isAllow:123,can_view');
     Route::post('upi-payment', [UPIPaymentController::class, 'upi_payment_update'])->name('upi-payment')->middleware('isAllow:123,can_edit');
     Route::get('upi-payment/export', [UPIPaymentController::class, 'upi_payment_export'])->name('upi-payment.export')->middleware('isAllow:123,can_view');
@@ -212,7 +212,7 @@ Route::middleware(['auth', 'permission', 'authCheck'])->group(function () {
     // ----------------------- Enquiries Routes ----------------------------------------------------
     Route::get('enquiries', [EnquiriesController::class, 'index'])->name('enquiries')->middleware('isAllow:121,can_view');
     Route::delete('enquiries', [EnquiriesController::class, 'delete'])->name('enquiries.delete')->middleware('isAllow:121,can_delete');
-    
+
     Route::get('join-requests', [EnquiriesController::class, 'join_requests'])->name('join-requests')->middleware('isAllow:121,can_view');
     Route::delete('join-requests', [EnquiriesController::class, 'join_request_delete'])->name('join-requests.delete')->middleware('isAllow:121,can_delete');
 
@@ -222,15 +222,14 @@ Route::middleware(['auth', 'permission', 'authCheck'])->group(function () {
         Route::get('pan-cards/export', [PanCardController::class, 'export'])->name('pan-cards.export')->middleware('isAllow:114,can_view');
         Route::post('pan-cards/status', [RetailerPanCardController::class, 'pan_card_status'])->name('pan-cards.status');
         Route::post('pan-cards/statistics', [PanCardController::class, 'statistics'])->name('pan-cards.statistics');
-        
+
         // ----------------------- ElectricityController ----------------------------------------------------
         Route::get('electricity-bill', [ElectricityController::class, 'index'])->name('electricity-bill')->middleware('isAllow:114,can_view');
         Route::get('water-bill', [ElectricityController::class, 'waterbill'])->name('water-bill')->middleware('isAllow:114,can_view');
-        Route::get('electricity/export', [ElectricityController::class, 'export'])->name('electricity.export')->middleware('isAllow:114,can_view');
-        
-        
+        Route::get('bills/export/{type}', [ElectricityController::class, 'export'])->name('bills.export')->middleware('isAllow:114,can_view');
+
+
         Route::get('gas-bill', [ElectricityController::class, 'gasbill'])->name('gas-bill')->middleware('isAllow:114,can_view');
         Route::get('lic-bill', [ElectricityController::class, 'licbill'])->name('lic-bill')->middleware('isAllow:114,can_view');
-        
     });
 });

@@ -77,7 +77,7 @@ class ForgotPasswordController extends Controller
         }
 
         if ($user == null) {
-            return redirect()->back()->withErrors(['email' => trans('User does not exist')]);
+            return back()->withErrors(['email' => trans('User does not exist')]);
         }
 
         //Create Password Reset Token
@@ -91,9 +91,9 @@ class ForgotPasswordController extends Controller
 
         //Get the token just created above
         if ($this->sendResetEmail($user, $token)) {
-            return redirect()->back()->with('success', trans('A reset link has been sent to your email address.'));
+            return back()->with('success', trans('A reset link has been sent to your email address.'));
         } else {
-            return redirect()->back()->with('error', trans('A Network Error occurred. Please try again.'));
+            return back()->with('error', trans('A Network Error occurred. Please try again.'));
         }
     }
 

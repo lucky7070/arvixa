@@ -131,7 +131,7 @@ class UPIPaymentController extends Controller
                             $statusClass = 'text-warning';
                             break;
                     }
-        
+
                     return '<span class="' . $statusClass . '">' . ucfirst($row['status']) . '</span>';
                 })
 
@@ -146,7 +146,7 @@ class UPIPaymentController extends Controller
                     $query->orWhere('distributors.userId', 'like', "%" . $keyword . "%");
                     $query->orWhere('retailers.userId', 'like', '%' . $keyword . '%');
                 })
-                ->rawColumns(['voucher_no', 'amount', 'user_name','status'])
+                ->rawColumns(['voucher_no', 'amount', 'user_name', 'status'])
                 ->make(true);
         }
 
@@ -189,7 +189,7 @@ class UPIPaymentController extends Controller
     //             $startDate = Carbon::parse(request('start_date'));
     //             $endDate = Carbon::parse(request('end_date'))->endOfDay();
     //             if ($startDate->diffInDays($endDate) > 30) {
-    //                 return redirect()->back()->withInput()->with('error', "Report can be exported for max 30 Days.");
+    //                 return back()->withInput()->with('error', "Report can be exported for max 30 Days.");
     //             }
     //             $query->whereBetween('ledgers.updated_at', [$startDate, $endDate]);
     //         }
@@ -327,7 +327,7 @@ class UPIPaymentController extends Controller
                 $join->on('retailers.id', '=', 'ledgers.user_id');
                 $join->where('user_type', 4);
             });
-            
+
             if (request('start_date') && request('end_date')) {
                 if (request('start_date') == request('end_date')) {
                     $query->whereDate('ledgers.updated_at', request('start_date'));
@@ -335,7 +335,7 @@ class UPIPaymentController extends Controller
                     $startDate = Carbon::parse(request('start_date'));
                     $endDate = Carbon::parse(request('end_date'))->endOfDay();
                     if ($startDate->diffInDays($endDate) > 30) {
-                        return redirect()->back()->withInput()->with('error', "Report can be exported for max 30 Days.");
+                        return back()->withInput()->with('error', "Report can be exported for max 30 Days.");
                     }
                     $query->whereBetween('ledgers.updated_at', [$startDate, $endDate]);
                 }
@@ -427,10 +427,7 @@ class UPIPaymentController extends Controller
             Log::error('Error exporting UPI payment report: ' . $e->getMessage());
 
             // Return error response
-            return redirect()->back()->withInput()->with('error', 'An error occurred while exporting the UPI payment report.');
+            return back()->withInput()->with('error', 'An error occurred while exporting the UPI payment report.');
         }
     }
-
-
-    
 }

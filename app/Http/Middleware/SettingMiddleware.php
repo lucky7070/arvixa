@@ -15,7 +15,9 @@ class SettingMiddleware
 
         if (!$request->is('api/*')) {
             View::share('site_settings', $data);
-            View::share('config', []);
+            View::share('config', [
+                'distributors_list_url'     => route('retailers.distributors_list'),
+            ]);
 
             View::share('config_front', []);
         }

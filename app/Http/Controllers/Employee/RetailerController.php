@@ -389,7 +389,7 @@ class RetailerController extends Controller
     public function notes(Request $request, $slug = null)
     {
         $retailers  = Retailer::where('employee_id', Auth::guard('employee')->id())->get();
-        $user       = $retailers->first(fn ($row) => $row->slug ==  $slug);
+        $user       = $retailers->first(fn($row) => $row->slug ==  $slug);
 
         if ($request->isMethod('post')) {
             $request->validate([
@@ -406,7 +406,7 @@ class RetailerController extends Controller
             ]);
 
             if (empty($user->id) && !in_array($request->retailer_id, $retailers->pluck('id')->toArray())) {
-                return redirect()->back()->withInput()->with('error', 'Invalid Retailer..!!');
+                return back()->withInput()->with('error', 'Invalid Retailer..!!');
             }
 
             return redirect()->route('employee.retailers.notes', $slug)->with('success', 'Comment Saved Successfully..!!');

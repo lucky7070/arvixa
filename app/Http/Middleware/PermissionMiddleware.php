@@ -10,7 +10,7 @@ class PermissionMiddleware
     public function handle(Request $request, Closure $next)
     {
         $user = auth()->user()->load('permission');
-        $data = $user->permission->toArray();
+        $data = $user->permission;
         $input = $request->all();
         if ($data) {
             $input['permission'] = $data;

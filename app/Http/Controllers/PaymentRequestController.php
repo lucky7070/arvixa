@@ -207,7 +207,7 @@ class PaymentRequestController extends Controller
                 $startDate = Carbon::parse(request('start_date'));
                 $endDate = Carbon::parse(request('end_date'))->endOfDay();
                 if ($startDate->diffInDays($endDate) > 30) {
-                    return redirect()->back()->withInput()->with('error', "Report can be exported for max 30 Days.");
+                    return back()->withInput()->with('error', "Report can be exported for max 30 Days.");
                 }
                 $query->whereBetween('payment_requests.updated_at', [$startDate, $endDate]);
             }

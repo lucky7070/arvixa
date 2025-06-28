@@ -20,6 +20,7 @@ use App\Models\MSMECertificate;
 use \Yajra\Datatables\Datatables;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
+use App\Models\ElectricityBill;
 
 class LedgerController extends Controller
 {
@@ -38,8 +39,10 @@ class LedgerController extends Controller
     // ◙ paid_by
     //=============================================================================
 
-    public static function add(int $user_id = null, int $user_type = 1, array $data = []): bool
+    public static function add(int $user_id, int $user_type = 1, array $data = []): bool
     {
+        if ($data['amount'] === 0) return true;
+
         switch ($user_type) {
             case 2:
                 $user =  MainDistributor::firstWhere('id', $user_id);
@@ -111,7 +114,7 @@ class LedgerController extends Controller
     }
 
     public static function getDataTable($data)
-    { 
+    {
         return Datatables::of($data)->addIndexColumn()
             ->editColumn('voucher_no', function ($row) {
                 return "<span class='fw-bold text-primary'>" . $row['voucher_no'] . "</span>";
@@ -150,11 +153,11 @@ class LedgerController extends Controller
                 }
                 return '<span class="' . $statusClass . '">' . ucfirst($row['status']) . '</span>';
             })
-        
+
             ->orderColumn('created_at', function ($query, $order) {
                 $query->orderBy('created_at', $order);
             })
-            ->rawColumns(['voucher_no', 'amount', 'updated_balance','status'])
+            ->rawColumns(['voucher_no', 'amount', 'updated_balance', 'status'])
             ->make(true);
     }
 
@@ -413,5 +416,48 @@ class LedgerController extends Controller
                 $itr->update(['status' => 3, 'is_refunded' => 1, 'completed_date' => now(), 'comments' => $errorMsg]);
             });
         }
+    }
+
+    public static function chargeForBillPayment(ElectricityBill $bill, ServicesLog $serviceLog)
+    {
+        DB::transaction(function () use ($bill, $serviceLog) {
+            self::add($serviceLog->user_id, $serviceLog->user_type, [
+                'amount'            => $bill->bill_amount,
+                'payment_type'      => 2,
+                'payment_method'    => 5,
+                'particulars'       => "Electricity bill charge for Transaction : " . $bill->transaction_id,
+                'service_id'        => $serviceLog->service_id,
+                'request_id'        => $bill->id,
+            ]);
+
+            self::add($serviceLog->user_id, $serviceLog->user_type, [
+                'amount'            => round($bill->bill_amount * $serviceLog->retailer_commission / 100),
+                'payment_type'      => 1,
+                'payment_method'    => 5,
+                'particulars'       => "Electricity bill Commission for Transaction : " . $bill->transaction_id,
+                'service_id'        => $serviceLog->service_id,
+                'request_id'        => $bill->id,
+            ]);
+
+            // if ($serviceLog->main_distributor_id && $serviceLog->main_distributor_commission > 0)
+            //     self::add($serviceLog->main_distributor_id, 2, [
+            //         'amount'            => $serviceLog->main_distributor_commission,
+            //         'payment_type'      => 1,
+            //         'payment_method'    => 5,
+            //         'particulars'       => "PanCard Service Commission : " . $pan_card->nsdl_txn_id,
+            //         'service_id'        => $serviceLog->service_id,
+            //         'request_id'        => $pan_card->id,
+            //     ]);
+
+            // if ($serviceLog->distributor_id && $serviceLog->distributor_commission > 0)
+            //     self::add($serviceLog->distributor_id, 3, [
+            //         'amount'            => $serviceLog->distributor_commission,
+            //         'payment_type'      => 1,
+            //         'payment_method'    => 5,
+            //         'particulars'       => "PanCard Service Commission : " . $pan_card->nsdl_txn_id,
+            //         'service_id'        => $serviceLog->service_id,
+            //         'request_id'        => $pan_card->id,
+            //     ]);
+        });
     }
 }

@@ -51,11 +51,11 @@ class RegisterController extends Controller
 
         // $checkOtp = RegistrationOtp::firstWhere(['mobile' => $request->mobile, 'otp' => $request->otp]);
         // if (!$checkOtp) {
-        //     return redirect()->back()->with('error', 'Incorrect OTP..!!')->withInput();
+        //     return back()->with('error', 'Incorrect OTP..!!')->withInput();
         // }
 
         // if ($checkOtp && Carbon::now()->isAfter($checkOtp->expire_at)) {
-        //     return redirect()->back()->with('error', 'Your OTP has been expired')->withInput();
+        //     return back()->with('error', 'Your OTP has been expired')->withInput();
         // }
 
         event(new Registered($user = $this->create($request->all())));
@@ -104,6 +104,6 @@ class RegisterController extends Controller
         // RegistrationOtp::where('mobile', $request->mobile)->delete();
         SendWelComeEmail::dispatch($user, $request->site_settings);
 
-        return redirect()->route('loginPage', ['guard' => 'customer'])->with('success', 'Registration complete, Please login.');
+        return to_route('loginPage', ['guard' => 'customer'])->with('success', 'Registration complete, Please login.');
     }
 }

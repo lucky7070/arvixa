@@ -25,11 +25,19 @@ return [
         'pan_cards_edit'            => 1,
         'pan_cards_add_digital'     => 2,
         'pan_cards_edit_digital'    => 2,
-        'msme_certificate'          => 3,
+        // 'income_tax_return'          => 3,
+        // 'msme_certificate'          => 3,
+
+        'water_bill'                => 7,
+        'electricity_bill'          => 8,
+        'lic_premium'               => 9,
+        'gas_payment'               => 10
     ],
 
     'front_url'     => 'https://pan.arvixa.in/',
     'secret_token'  => '9906bf6e010b53816cf0684eead09923b051c75ca0b5ad6b9e79dec56',
+    'mplan_key'     => env('MPLAN_KEY', "ba0fa41bee5146ebe30f8f7e3c10c68b"),
+    
     'phoneRegExp'       => "/^(?:(?:\+|0{0,2})91(\s*|[-])?|[0]?)?([6789]\d{2}([ -]?)\d{3}([ -]?)\d{4})$/",
     'emailRegExp'       => '/^(("[\w-\s]+")|([\w-]+(?:\.[\w-]+)*)|("[\w-\s]+")([\w-]+(?:\.[\w-]+)*))(@((?:[\w-]+\.)*\w[\w-]{0,66})\.([a-z]{2,6}(?:\.[a-z]{2})?)$)|(@\[?((25[0-5]\.|2[0-4][0-9]\.|1[0-9]{2}\.|[0-9]{1,2}\.))((25[0-5]|2[0-4][0-9]|1[0-9]{2}|[0-9]{1,2})\.){2}(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[0-9]{1,2})\]?$)/i',
     'aadhaarRegExp'     => "/^[2-9]{1}[0-9]{3}[0-9]{4}[0-9]{4}$/",

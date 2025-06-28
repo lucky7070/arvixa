@@ -125,7 +125,7 @@ function userCan($module_id = [], $type = "can_view"): bool
         $module = [$module_id];
     }
 
-    $permission = request()->permission;
+    $permission = request()->permission->toArray();
     $result = array_filter($permission, function ($item) use ($module, $type) {
         if (in_array($item['module_id'], $module) && ($item['allow_all'] == 1 || $item[$type] == 1)) {
             return $item;
@@ -142,7 +142,7 @@ function userCan($module_id = [], $type = "can_view"): bool
 
 function userAllowed($module_id = 0, $type = ['can_edit', 'can_delete'])
 {
-    $permission = request()->permission;
+    $permission = request()->permission->toArray();
     $result = array_filter($permission, function ($item) use ($module_id) {
         if ($item['module_id'] == $module_id) {
             return $item;

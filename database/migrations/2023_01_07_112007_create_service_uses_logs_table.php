@@ -24,6 +24,7 @@ return new class extends Migration
             $table->double('sale_rate', 10, 2)->default(0);
             $table->bigInteger('main_distributor_id')->nullable();
             $table->bigInteger('distributor_id')->nullable();
+            $table->double('retailer_commission', 10, 2)->default(0);
             $table->double('main_distributor_commission', 10, 2)->default(0);
             $table->double('distributor_commission', 10, 2)->default(0);
             $table->integer('is_refunded')->default(0);

@@ -15,14 +15,17 @@ class ElectricityBill extends Model
 
     // Mass assignable fields
     protected $fillable = [
+        'transaction_id',
         'user_id',
         'board_id',
         'consumer_no',
         'consumer_name',
         'bill_no',
         'bill_amount',
+        'bill_type',
         'due_date',
         'status',
+        'is_refunded',
     ];
 
     // Cast these fields as dates

@@ -63,7 +63,7 @@ class ResetPasswordController extends Controller
         ])->first();
 
         if ($token_data == null) {
-            return redirect()->back()->withErrors(['email' => trans('User does not exist')]);
+            return back()->withErrors(['email' => trans('User does not exist')]);
         }
 
         switch ($token_data->guard) {
@@ -87,7 +87,7 @@ class ResetPasswordController extends Controller
         }
 
         if ($user == null) {
-            return redirect()->back()->withErrors(['email' => trans('User does not exist')]);
+            return back()->withErrors(['email' => trans('User does not exist')]);
         }
 
         if ($this->resetPassword($user, $request->password)) {
@@ -96,7 +96,7 @@ class ResetPasswordController extends Controller
                 ->to(route('loginPage', $token_data->guard == 'web' ? 'admin' : $token_data->guard))->with('success',  trans('Password Updated Successfully, Please login with new password.'))
                 ->withInput(['email' => $request->email]);
         } else {
-            return redirect()->back()
+            return back()
                 ->withInput($request->only('email'))
                 ->withErrors(['email' => trans('An Error Occurred Please Try Again Later.')]);
         }

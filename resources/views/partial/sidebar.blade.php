@@ -207,7 +207,7 @@
                 @endif
                 
                 @if(userCan(110))
-                <li class="@routeis('reports.water-bill') active @endrouteis">
+                <li class="@routeis('reports.gas-bill') active @endrouteis">
                     <a class="nav-link" href="{{ route('reports.gas-bill') }}" data-bs-toggle="" aria-expanded="false">
                         <div class="d-flex align-items-center"><span class="nav-link-text ps-1">Gas Bill Report</span>
                         </div>
@@ -216,7 +216,7 @@
                 @endif
                 
                 @if(userCan(110))
-                <li class="@routeis('reports.water-bill') active @endrouteis">
+                <li class="@routeis('reports.lic-bill') active @endrouteis">
                     <a class="nav-link" href="{{ route('reports.lic-bill') }}" data-bs-toggle="" aria-expanded="false">
                         <div class="d-flex align-items-center"><span class="nav-link-text ps-1">LIC Bill Report</span>
                         </div>

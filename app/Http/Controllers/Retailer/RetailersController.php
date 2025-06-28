@@ -25,34 +25,23 @@ class RetailersController extends Controller
             ->where('user_type', 4)
             ->orderBy('services.id', 'asc')
             ->get();
-            
-        $bills = ElectricityBill::with(['retailer', 'board'])
-        ->where('bill_type', 'electricity')
-        ->latest() // Order by created_at descending
-        ->take(5)  // Limit to 5 records
-        ->get();
-        
-        $waterbills = ElectricityBill::with(['retailer', 'board'])
-        ->where('bill_type', 'water')
-        ->latest() // Order by created_at descending
-        ->take(5)  // Limit to 5 records
-        ->get();
-        
-         $gasbills = ElectricityBill::with(['retailer', 'board'])
-        ->where('bill_type', 'gas')
-        ->latest() // Order by created_at descending
-        ->take(5)  // Limit to 5 records
-        ->get();
-        
-         $licbills = ElectricityBill::with(['retailer', 'board'])
-        ->where('bill_type', 'lic')
-        ->latest() // Order by created_at descending
-        ->take(5)  // Limit to 5 records
-        ->get();
 
         $banners = BannerAdmin::where('status', 1)->whereRaw("find_in_set('4',banner_for)")->get();
         $services = $servicesLog->pluck('service_id')->toArray();
 
-        return view('retailer.home', compact('services', 'servicesLog', 'banners', 'waterbills','gasbills','licbills','bills'));
+        return view('retailer.home', compact('services', 'servicesLog', 'banners'));
+    }
+
+    public function commission()
+    {
+        $servicesLog = ServicesLog::select('services_logs.service_id', 'services.name as service_name', 'services_logs.sale_rate as sale_rate', 'services_logs.retailer_commission as retailer_commission')
+            ->leftJoin('services', 'services.id', '=', 'services_logs.service_id')
+            ->where('user_id', auth()->guard('retailer')->id())
+            ->where('services_logs.status', 1)
+            ->where('user_type', 4)
+            ->orderBy('services.id', 'asc')
+            ->get();
+
+        return view('retailer.commission', compact('servicesLog'));
     }
 }
