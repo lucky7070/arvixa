@@ -28,7 +28,9 @@
                         <th>Consumer No</th>
                         <th>Bill No</th>
                         <th>Date</th>
-                        <th>Amount</th>
+                        <th>Bill Amount</th>
+                        <th>Commission</th>
+                        <th>TDS Amount</th>
                         <th>Provider Name</th>
                         <th>Action</th>
                     </tr>
@@ -72,6 +74,14 @@
                 {
                     data: 'bill_amount',
                     name: 'bill_amount',
+                },
+                {
+                    data: 'commission',
+                    name: 'commission',
+                },
+                {
+                    data: 'tds',
+                    name: 'tds',
                 },
                 {
                     data: 'provider_name',

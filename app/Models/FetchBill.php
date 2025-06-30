@@ -18,5 +18,6 @@ class FetchBill extends Model
         'bill_no',
         'bill_amount',
         'due_date',
+        'bu_code',
     ];
 }

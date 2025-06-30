@@ -36,7 +36,14 @@
         </div>
         @endif
     </div>
-
+    <div class="col-md-12">
+        <div class="alert alert-icon-left alert-arrow-left alert-light-primary alert-dismissible fade show" role="alert">
+            <p class="mb-2 text-primary"><strong>ध्यान दें..!! </strong> सरकार के नए नियमानुसार MFS L0 को अब MFS L1 110
+                में अपग्रेड किया गया है। बिना रुकावट के पैनकार्ड बनाने के लिए आज ही अपनी डिवाइस को अपग्रेड करे। डिवाइस
+                लेने के लिए संपर्क करे।</p>
+            <i class="fa-regular fa-bell"></i>
+        </div>
+    </div>
     <div class="col-md-12">
         <div class="row">
             @foreach($servicesLog as $row)

@@ -420,44 +420,166 @@ class LedgerController extends Controller
 
     public static function chargeForBillPayment(ElectricityBill $bill, ServicesLog $serviceLog)
     {
-        DB::transaction(function () use ($bill, $serviceLog) {
-            self::add($serviceLog->user_id, $serviceLog->user_type, [
-                'amount'            => $bill->bill_amount,
-                'payment_type'      => 2,
-                'payment_method'    => 5,
-                'particulars'       => "Electricity bill charge for Transaction : " . $bill->transaction_id,
-                'service_id'        => $serviceLog->service_id,
-                'request_id'        => $bill->id,
+        DB::beginTransaction();
+        try {
+            $user_id    = $bill->user_id;
+            $user_type  = 4;
+            $current    = now();
+
+            $serviceName = 'Bill';
+            if (config('constant.service_ids.electricity_bill') === $serviceLog->service_id) {
+                $serviceName = 'Electricity Bill';
+            } else if (config('constant.service_ids.water_bill') === $serviceLog->service_id) {
+                $serviceName = 'Water Bill';
+            } else if (config('constant.service_ids.lic_premium') === $serviceLog->service_id) {
+                $serviceName = 'LIC Premium';
+            } else if (config('constant.service_ids.gas_payment') === $serviceLog->service_id) {
+                $serviceName = 'GAS Bill';
+            }
+
+            Ledger::create([
+                'voucher_no'                => Str::uuid(),
+                'user_id'                   => $user_id,
+                'user_type'                 => $user_type,
+                'amount'                    => $bill->bill_amount,
+                'payment_type'              => 2,
+                'payment_method'            => 5,
+                'particulars'               => $serviceName . " Charge for Transaction : " . $bill->transaction_id,
+                'date'                      => $current,
+                'trans_details_json'        => null,
+                'service_id'                => $serviceLog->service_id,
+                'request_id'                => $bill->id,
+                'paid_by'                   => null,
             ]);
 
-            self::add($serviceLog->user_id, $serviceLog->user_type, [
-                'amount'            => round($bill->bill_amount * $serviceLog->retailer_commission / 100),
-                'payment_type'      => 1,
-                'payment_method'    => 5,
-                'particulars'       => "Electricity bill Commission for Transaction : " . $bill->transaction_id,
-                'service_id'        => $serviceLog->service_id,
-                'request_id'        => $bill->id,
+            Ledger::create([
+                'voucher_no'                => Str::uuid(),
+                'user_id'                   => $user_id,
+                'user_type'                 => $user_type,
+                'amount'                    => $bill->commission,
+                'payment_type'              => 1,
+                'payment_method'            => 5,
+                'particulars'               => $serviceName . " Commission for Transaction : " . $bill->transaction_id,
+                'date'                      => $current,
+                'trans_details_json'        => null,
+                'service_id'                => $serviceLog->service_id,
+                'request_id'                => $bill->id,
+                'paid_by'                   => null,
             ]);
 
-            // if ($serviceLog->main_distributor_id && $serviceLog->main_distributor_commission > 0)
-            //     self::add($serviceLog->main_distributor_id, 2, [
-            //         'amount'            => $serviceLog->main_distributor_commission,
-            //         'payment_type'      => 1,
-            //         'payment_method'    => 5,
-            //         'particulars'       => "PanCard Service Commission : " . $pan_card->nsdl_txn_id,
-            //         'service_id'        => $serviceLog->service_id,
-            //         'request_id'        => $pan_card->id,
-            //     ]);
+            Ledger::create([
+                'voucher_no'                => Str::uuid(),
+                'user_id'                   => $user_id,
+                'user_type'                 => $user_type,
+                'amount'                    => $bill->tds,
+                'payment_type'              => 2,
+                'payment_method'            => 5,
+                'particulars'               => $serviceName . " TDS Charge for Transaction : " . $bill->transaction_id,
+                'date'                      => $current,
+                'trans_details_json'        => null,
+                'service_id'                => $serviceLog->service_id,
+                'request_id'                => $bill->id,
+                'paid_by'                   => null,
+            ]);
 
-            // if ($serviceLog->distributor_id && $serviceLog->distributor_commission > 0)
-            //     self::add($serviceLog->distributor_id, 3, [
-            //         'amount'            => $serviceLog->distributor_commission,
-            //         'payment_type'      => 1,
-            //         'payment_method'    => 5,
-            //         'particulars'       => "PanCard Service Commission : " . $pan_card->nsdl_txn_id,
-            //         'service_id'        => $serviceLog->service_id,
-            //         'request_id'        => $pan_card->id,
-            //     ]);
-        });
+            ServiceUsesLog::create([
+                'user_id'                       => $user_id,
+                'user_type'                     => $user_type,
+                'customer_id'                   => 0,
+                'service_id'                    => $serviceLog->service_id,
+                'request_id'                    => $bill->id,
+                'used_in'                       => 1,
+                'purchase_rate'                 => $serviceLog->purchase_rate,
+                'sale_rate'                     => $serviceLog->sale_rate,
+                'main_distributor_id'           => $serviceLog->main_distributor_id,
+                'distributor_id'                => $serviceLog->distributor_id,
+                'main_distributor_commission'   => $serviceLog->main_distributor_commission,
+                'distributor_commission'        => $serviceLog->distributor_commission,
+                'retailer_commission'           => $serviceLog->retailer_commission,
+                'is_refunded'                   => 0,
+                'created_at'                    => $current,
+            ]);
+
+            Retailer::where('id', $bill->user_id)->decrement('user_balance', $bill->bill_amount + $bill->commission - $bill->tds);
+
+            DB::commit();
+            return true;
+        } catch (\Throwable $th) {
+            DB::rollback();
+            return false;
+        }
+    }
+
+    public static function refundForBillPayment(ElectricityBill $bill, ServiceUsesLog $serviceLog)
+    {
+        DB::beginTransaction();
+        try {
+            $user_id    = $bill->user_id;
+            $user_type  = 4;
+            $current    = now();
+            $serviceName = 'Bill';
+            if (config('constant.service_ids.electricity_bill') === $serviceLog->service_id) {
+                $serviceName = 'Electricity Bill';
+            } else if (config('constant.service_ids.water_bill') === $serviceLog->service_id) {
+                $serviceName = 'Water Bill';
+            } else if (config('constant.service_ids.lic_premium') === $serviceLog->service_id) {
+                $serviceName = 'LIC Premium';
+            } else if (config('constant.service_ids.gas_payment') === $serviceLog->service_id) {
+                $serviceName = 'GAS Bill';
+            }
+
+            Ledger::create([
+                'voucher_no'                => Str::uuid(),
+                'user_id'                   => $user_id,
+                'user_type'                 => $user_type,
+                'amount'                    => $bill->bill_amount,
+                'payment_type'              => 1,
+                'payment_method'            => 5,
+                'particulars'               => $serviceName . " Refund for Transaction : " . $bill->transaction_id,
+                'date'                      => $current,
+                'trans_details_json'        => null,
+                'service_id'                => $serviceLog->service_id,
+                'request_id'                => $bill->id,
+                'paid_by'                   => null,
+            ]);
+
+            Ledger::create([
+                'voucher_no'                => Str::uuid(),
+                'user_id'                   => $user_id,
+                'user_type'                 => $user_type,
+                'amount'                    => $bill->commission,
+                'payment_type'              => 2,
+                'payment_method'            => 5,
+                'particulars'               => $serviceName . " Commission Refund for Transaction : " . $bill->transaction_id,
+                'date'                      => $current,
+                'trans_details_json'        => null,
+                'service_id'                => $serviceLog->service_id,
+                'request_id'                => $bill->id,
+                'paid_by'                   => null,
+            ]);
+
+            Ledger::create([
+                'voucher_no'                => Str::uuid(),
+                'user_id'                   => $user_id,
+                'user_type'                 => $user_type,
+                'amount'                    => $bill->tds,
+                'payment_type'              => 1,
+                'payment_method'            => 5,
+                'particulars'               => $serviceName . " TDS Refund for Transaction : " . $bill->transaction_id,
+                'date'                      => $current,
+                'trans_details_json'        => null,
+                'service_id'                => $serviceLog->service_id,
+                'request_id'                => $bill->id,
+                'paid_by'                   => null,
+            ]);
+
+            $serviceLog->update(['is_refunded' => 1]);
+            $bill->update(['status' => 2, 'is_refunded' => 1]);
+            DB::commit();
+            return true;
+        } catch (\Throwable $th) {
+            DB::rollback();
+            return false;
+        }
     }
 }

@@ -58,7 +58,7 @@
                         <th>Consumer No</th>
                         <th>Bill No</th>
                         <th>Date</th>
-                        <th>Amount</th>
+                        <th>Bill Amount</th>
                         <th>Provider Name</th>
                         <th>Action</th>
                     </tr>
@@ -71,7 +71,7 @@
 @endsection
 
 @section('js')
-
+<script src="{{ asset('assets/js/sweetalert2.min.js') }}"></script>
 <script type="text/javascript">
     $(function() {
         var table = $('.table-datatable').DataTable({
@@ -138,6 +138,47 @@
 
         $('.reset').click(function() {
             setTimeout(() => table.draw(), 500)
+        });
+
+        $(document).on('click', '.update-status', function() {
+            const id = $(this).data('id');
+            const type = $(this).data('type');
+
+            swal({
+                title: "Are you sure?",
+                text: "You want to submit this record..!",
+                icon: "warning",
+                buttons: {
+                    cancel: {
+                        text: "Cancel",
+                        visible: true,
+                        className: "btn btn-dark",
+                        closeModal: true,
+                    },
+                    confirm: {
+                        text: "Yes, Do It.!",
+                        value: true,
+                        visible: true,
+                        className: "btn btn-primary",
+                        closeModal: true
+                    }
+                },
+                dangerMode: true,
+            }).then((confirm) => {
+                if (confirm) {
+                    $.post("{{ route('reports.bill-submit') }}", {
+                        id,
+                        type
+                    }, function(data) {
+                        if (data.status) {
+                            table.draw();
+                            toastr.success(data.message);
+                        } else {
+                            toastr.error(data.message);
+                        }
+                    })
+                }
+            });
         });
     });
 </script>

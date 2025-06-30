@@ -23,8 +23,8 @@
                 <form id="electricity-fetch-form">
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label for="board_id" class="form-label">Select Board</label>
-                            <select class="form-control board-id" name="board_id" required>
+                            <label for="operator" class="form-label">Select Board</label>
+                            <select class="form-control board-id" name="operator" id="operator">
                                 <option value=""> -- Select Board --</option>
                                 @foreach($providers as $provider)
                                 <option value="{{ $provider->id }}">{{ $provider->name }}</option>
@@ -33,7 +33,11 @@
                         </div>
                         <div class="col-md-6 mb-3">
                             <label for="consumer_no" class="form-label">Consumer Number</label>
-                            <input type="text" class="form-control consumer-no" name="consumer_no" placeholder="Consumer No" required oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+                            <input type="text" class="form-control consumer-no" name="consumer_no" id="consumer_no" placeholder="Consumer No" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+                        </div>
+                        <div class="col-md-6 mb-3" style="display: none;">
+                            <label for="bu_code" class="form-label">Sub Division/ERO/BU</label>
+                            <input type="text" class="form-control" name="bu_code" id="bu_code" placeholder="Sub Division/ERO/BU">
                         </div>
                         <div class="col-md-12">
                             <button type="submit" class="btn btn-primary px-4">Fetch Bill</button>
@@ -84,24 +88,33 @@
 @section('js')
 <script>
     $(function() {
-        $("#electricity-fetch-form").validate({
+
+        var validator = $("#electricity-fetch-form").validate({
+            debug: false,
             errorClass: "text-danger fs--1",
             errorElement: "span",
             rules: {
-                board_id: {
+                operator: {
                     required: true
                 },
                 consumer_no: {
-                    minlength: 10,
+                    minlength: 4,
                     required: true
                 },
+                bu_code: {
+                    minlength: 2,
+                    required: true
+                }
             },
             messages: {
-                board_id: {
+                operator: {
                     required: "Please select board name.",
                 },
                 consumer_no: {
                     required: "Please enter consumer no.",
+                },
+                bu_code: {
+                    required: "Please enter Sub Division/ERO/BU.",
                 },
             },
             submitHandler: function(form) {
@@ -109,30 +122,31 @@
                 $("#overlay").show();
                 $.ajax({
                     url: '{{ route("retailer.electricity-bill-details") }}',
+                    data: formData,
+                    contentType: false,
+                    processData: false,
                     type: 'POST',
-                    data: {
-                        operator: formData.get('board_id'),
-                        consumer_no: formData.get('consumer_no'),
-                    },
-                    success: function(response) {
-                        if (response.status) {
-                            $('.consumer-name').val(response.data.consumer_name);
-                            $('.bill-no').val(response.data.bill_no);
-                            $('.bill-amount').val(response.data.bill_amount);
-                            $('.due-date').val(response.data.due_date);
-                            $('#transaction-id').val(response.data.transaction_id)
+                    success: function(data) {
+                        if (data.status) {
+                            $('.consumer-name').val(data.data.consumer_name);
+                            $('.bill-no').val(data.data.bill_no);
+                            $('.bill-amount').val(data.data.bill_amount);
+                            $('.due-date').val(data.data.due_date);
+                            $('#transaction-id').val(data.data.transaction_id)
                             $('#bill-details').show()
-                            toastr.success(response.message);
+                            toastr.success(data.message);
+                            $("#overlay").hide();
                         } else {
-                            toastr.error(response.message);
+                            toastr.error(data.message);
+                            $("#overlay").hide();
+                            validator.showErrors(data.data);
                         }
                     },
-                    complete: function() {
+                    error: function() {
                         $("#overlay").hide();
                     }
                 });
-            },
-
+            }
         });
 
         const form = $('#submit-form');
@@ -156,6 +170,14 @@
                 }
             });
         });
+
+        $('#operator').on('change', function() {
+            if ($('#operator option:selected').text().includes(`MSEDC`)) {
+                $('#bu_code').parent().show()
+            } else {
+                $('#bu_code').parent().hide();
+            }
+        })
     });
 </script>
 

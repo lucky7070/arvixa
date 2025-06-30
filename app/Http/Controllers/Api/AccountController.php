@@ -2,29 +2,10 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Models\City;
-use App\Models\Order;
-use App\Models\State;
-use App\Models\Product;
-use App\Models\Voucher;
-use App\Models\CartItem;
-use App\Models\Category;
-use App\Models\Customer;
-use App\Models\ServicesLog;
-use App\Models\CustomerBank;
 use Illuminate\Http\Request;
-use App\Models\ServiceUsesLog;
-use Illuminate\Support\Carbon;
-use App\Models\MSMECertificate;
-use App\Models\CustomerDocument;
-use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
-use App\Http\Controllers\CategoryController;
-use App\Http\Controllers\Common\StoreController;
 use App\Http\Controllers\Common\CommonController;
-use App\Http\Controllers\Common\LedgerController;
 use App\Http\Controllers\Common\RazorPayController;
 use App\Traits\Mobile\ITRServices;
 use App\Traits\Mobile\MSMEServices;

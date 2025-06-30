@@ -141,8 +141,7 @@
 <script src="{{ asset('assets/plugins/summernote-0.8.18-dist/summernote.min.js') }}"></script>
 
 <script type="text/javascript">
-
-	$(document).ready(function () {
+	$(document).ready(function() {
 		$('.summernote').summernote({
 			toolbar: [
 				['style', ['style']],
@@ -156,7 +155,7 @@
 			],
 			height: 200,
 			callbacks: {
-				onImageUpload: function (files) {
+				onImageUpload: function(files) {
 					sendFile(files[0], this);
 				}
 			}
@@ -172,7 +171,7 @@
 				cache: false,
 				contentType: false,
 				processData: false,
-				success: function (url) {
+				success: function(url) {
 					var image = $('<img>').attr('src', url);
 					$(selector).summernote("insertNode", image[0]);
 				}
@@ -181,7 +180,7 @@
 
 		let buttons = $('.note-editor button[data-toggle="dropdown"]');
 		buttons.each((key, value) => {
-			$(value).on('click', function (e) {
+			$(value).on('click', function(e) {
 				$(this).attr('data-bs-toggle', 'dropdown')
 
 			})
@@ -218,6 +217,27 @@
 					extension: "jpg,jpeg,png,svg,gif"
 				},
 				maesage: "required",
+				company_bank_name: {
+					required: true,
+					minlength: 2,
+					maxlength: 50,
+				},
+				company_account_number: {
+					required: true,
+					minlength: 2,
+					maxlength: 50,
+				},
+				company_ifsc_code: {
+					required: true,
+					minlength: 2,
+					maxlength: 50,
+				},
+				tds_percent: {
+					required: true,
+					number: true,
+					min: 0,
+					max: 100,
+				},
 			},
 			messages: {
 				application_name: {
@@ -248,13 +268,31 @@
 				logo: {
 					filesize: "File size Not exceed limit 500 kb",
 					extension: "You're only allowed to upload jpg,jpeg,png,gif or svg images."
-				}
+				},
+				company_bank_name: {
+					required: 'Please enter Bank name.',
+					minlength: "Bank name must consist of at least 2 characters.",
+					maxlength: "Bank name must not exceed characters limit 100.",
+				},
+				company_account_number: {
+					required: 'Please enter Bank account number.',
+					minlength: "Account Number must consist of at least 2 characters.",
+					maxlength: "Account Number must not exceed characters limit 100.",
+				},
+				company_ifsc_code: {
+					required: 'Please enter Bank IFSC code.',
+					minlength: "IFSC Code must consist of at least 2 characters.",
+					maxlength: "IFSC Code must not exceed characters limit 100.",
+				},
+				tds_percent: {
+					required: 'Please enter TDS percent.',
+				},
 			},
-			errorPlacement: function (label, element) {
+			errorPlacement: function(label, element) {
 				label.addClass('fs--1 text-danger');
 				label.insertAfter(element);
 			},
-			highlight: function (element, errorClass) {
+			highlight: function(element, errorClass) {
 				$(element).parent().addClass('has-danger')
 				$(element).siblings().find('.file-upload-info').addClass('form-control-danger')
 				$(element).siblings().find('span').children().first().addClass('btn-danger')
@@ -308,7 +346,7 @@
 				},
 
 			},
-			errorPlacement: function (label, element) {
+			errorPlacement: function(label, element) {
 				label.addClass('fs--1 text-danger');
 				label.insertAfter(element);
 			},
@@ -360,7 +398,7 @@
 					required: "Please enter SMTP password.",
 				},
 			},
-			errorPlacement: function (label, element) {
+			errorPlacement: function(label, element) {
 				label.addClass('fs--1 text-danger');
 				label.insertAfter(element);
 			}
@@ -395,7 +433,7 @@
 					required: "Please enter Merchant Id",
 				},
 			},
-			errorPlacement: function (label, element) {
+			errorPlacement: function(label, element) {
 				label.addClass('fs--1 text-danger');
 				label.insertAfter(element);
 			}
@@ -439,7 +477,7 @@
 					required: "Please enter TextLocal Sender Id.",
 				},
 			},
-			errorPlacement: function (label, element) {
+			errorPlacement: function(label, element) {
 				label.addClass('fs--1 text-danger');
 				label.insertAfter(element);
 			}
@@ -470,7 +508,7 @@
 					required: "Please enter Merchant Id",
 				},
 			},
-			errorPlacement: function (label, element) {
+			errorPlacement: function(label, element) {
 				label.addClass('fs--1 text-danger');
 				label.insertAfter(element);
 			}

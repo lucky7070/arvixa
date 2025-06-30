@@ -26,6 +26,9 @@ class ElectricityBill extends Model
         'due_date',
         'status',
         'is_refunded',
+        'bu_code',
+        'commission',
+        'tds'
     ];
 
     // Cast these fields as dates

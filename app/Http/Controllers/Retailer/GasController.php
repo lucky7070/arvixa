@@ -15,6 +15,7 @@ use App\Models\FetchBill;
 use App\Models\ServiceUsesLog;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
 use PhpOffice\PhpSpreadsheet\Shared\Date;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
@@ -59,41 +60,62 @@ class GasController extends Controller
 
     public function getDetails(Request $request)
     {
-        $provider = DB::table('rproviders')->where('id', $request->operator)->first();
-        if (!$provider) {
-            return response()->json(['error' => 'Invalid provider selected.'], 400);
-        }
+        $validation = Validator::make($request->all(), [
+            'operator'      => ['required', 'numeric', 'min:1'],
+            'consumer_no'   => ['required', 'string', 'min:2', 'max:50'],
+            'bu_code'       => ['required_if:operator,48', 'string', 'min:2', 'max:50'],
+        ]);
 
-        $record = BillPay::getGasBill($request->consumer_no, $provider->code1);
-        if (!empty($record['CustomerName'])) {
-            $fetch =   FetchBill::create([
-                'transaction_id'    => (string) Str::uuid(),
-                'service_id'        => $this->service_id,
-                'user_id'           => $this->user_id,
-                'board_id'          => $request->operator,
-                'consumer_no'       => $request->consumer_no,
-                'consumer_name'     => @$record['CustomerName'],
-                'bill_no'           => @$record['BillNumber'] ?? '',
-                'bill_amount'       => @$record['Billamount'] ?? '',
-                'due_date'          => Carbon::parse($record['Duedate'])->format('Y-m-d')
-            ]);
+        if ($validation->fails()) {
 
-            return response()->json([
-                'status'    => true,
-                'message'   => 'Bill details fetched successfully.',
-                'data'      => $fetch
-            ]);
-        } else {
+            foreach ($validation->errors()->toArray() as $key => $value) {
+                $err[$key] = $value[0];
+            }
+
             return response()->json([
                 'status'    => false,
-                'message'   => 'No bill amount pending.',
-                'data'      => []
+                'message'   => "Invalid Input values.",
+                "data"      => $err
             ]);
+        } else {
+            $provider = DB::table('rproviders')->where('id', $request->operator)->first();
+            if (!$provider) {
+                return response()->json(['error' => 'Invalid provider selected.'], 400);
+            }
+
+            $record = BillPay::getGasBill($request->consumer_no, $provider->code1);
+            if (!empty($record['CustomerName'])) {
+                $fetch =   FetchBill::create([
+                    'transaction_id'    => (string) Str::uuid(),
+                    'service_id'        => $this->service_id,
+                    'user_id'           => $this->user_id,
+                    'board_id'          => $request->operator,
+                    'consumer_no'       => $request->consumer_no,
+                    'consumer_name'     => @$record['CustomerName'],
+                    'bill_no'           => @$record['BillNumber'] ?? '',
+                    'bill_amount'       => @$record['Billamount'] ?? '',
+                    'due_date'          => Carbon::parse($record['Duedate'])->format('Y-m-d')
+                ]);
+
+                return response()->json([
+                    'status'    => true,
+                    'message'   => 'Bill details fetched successfully.',
+                    'data'      => $fetch
+                ]);
+            } else {
+                return response()->json([
+                    'status'    => false,
+                    'message'   => 'No bill amount pending.',
+                    'data'      => []
+                ]);
+            }
         }
     }
 
     public function paymentSubmit(Request $request)
     {
+        $request->validate(['transaction_id'      => ['required', 'string', 'max:255']]);
+
         $data = FetchBill::where('transaction_id', $request->get('transaction_id'))->where('user_id', $this->user_id)->where('service_id', $this->service_id)->first();
         if (!$data)  return back()->with('error', "Invalid Request..!!");
 
@@ -115,6 +137,8 @@ class GasController extends Controller
         // Check if user has enough wallet balance
         if ($balance < $amountDue) return back()->with('error', "Insufficient Balance, please recharge your wallet..!!");
 
+        $commission = round((float) $data->bill_amount * $serviceLog->retailer_commission / 100);
+        $tds_amount = round($commission * (float) $request->site_settings['tds_percent']);
         $bill =   ElectricityBill::create([
             'transaction_id'    => 'TXN' . str()->upper(str()->random(10)),
             'user_id'           => $data->user_id,
@@ -125,28 +149,17 @@ class GasController extends Controller
             'bill_amount'       => (float) $data->bill_amount,
             'bill_type'         => 'gas',
             'due_date'          => $data->due_date,
+            'commission'        => $commission,
+            'tds'               => $tds_amount,
         ]);
 
-        LedgerController::chargeForBillPayment($bill, $serviceLog);
-        ServiceUsesLog::create([
-            'user_id'                       => $this->user_id,
-            'user_type'                     => $this->user_type,
-            'customer_id'                   => 0,
-            'service_id'                    => $this->service_id,
-            'request_id'                    => $bill->id,
-            'used_in'                       => 1,
-            'purchase_rate'                 => $serviceLog->purchase_rate,
-            'sale_rate'                     => $serviceLog->sale_rate,
-            'main_distributor_id'           => $serviceLog->main_distributor_id,
-            'distributor_id'                => $serviceLog->distributor_id,
-            'main_distributor_commission'   => $serviceLog->main_distributor_commission,
-            'distributor_commission'        => $serviceLog->distributor_commission,
-            'retailer_commission'           => $serviceLog->retailer_commission,
-            'is_refunded'                   => 0,
-            'created_at'                    => Carbon::now(),
-        ]);
-
-        return to_route('retailer.gas-bill-list')->with('success', "Bill Submitted successfully..!!");
+        $state =  LedgerController::chargeForBillPayment($bill, $serviceLog);
+        if ($state) {
+            return to_route('retailer.gas-bill-list')->with('success', "Bill Submitted successfully..!!");
+        } else {
+            $bill->delete();
+            return back()->withError('Something went wrong..!!');
+        }
     }
 
     public function list(Request $request)
@@ -154,7 +167,7 @@ class GasController extends Controller
         $service = Services::find($this->service_id);
         if ($request->ajax()) {
 
-            $data = ElectricityBill::select('electricity_bills.id', 'electricity_bills.transaction_id', 'electricity_bills.consumer_name', 'electricity_bills.consumer_no', 'electricity_bills.bill_no', 'electricity_bills.created_at', 'electricity_bills.bill_amount', 'rproviders.name as provider_name')
+            $data = ElectricityBill::select('electricity_bills.id', 'electricity_bills.transaction_id', 'electricity_bills.consumer_name', 'electricity_bills.consumer_no', 'electricity_bills.bill_no', 'electricity_bills.created_at', 'electricity_bills.due_date', 'electricity_bills.bill_amount', 'electricity_bills.commission', 'electricity_bills.tds', 'rproviders.name as provider_name')
                 ->where('electricity_bills.bill_type', 'gas')
                 ->where('electricity_bills.user_id', $this->user_id)
                 ->join('rproviders', 'rproviders.id', 'electricity_bills.board_id');
@@ -172,10 +185,16 @@ class GasController extends Controller
                 ->editColumn('bill_amount', function ($row) {
                     return  '<b class="text-primary">₹ ' . $row['bill_amount'] . '</b>';
                 })
+                ->editColumn('commission', function ($row) {
+                    return  '<b class="text-success">₹ ' . $row['commission'] . '</b>';
+                })
+                ->editColumn('tds', function ($row) {
+                    return  '<b class="text-danger">₹ ' . $row['tds'] . '</b>';
+                })
                 ->addColumn('action', function ($row) {
                     return  '<a href="' . route('retailer.gas-download.receipt', $row->id) . '" class="btn btn-sm btn-primary">Download</a>';
                 })
-                ->rawColumns(['transaction_id', 'consumer_name', 'bill_amount', 'action'])
+                ->rawColumns(['transaction_id', 'consumer_name', 'bill_amount', 'action', 'commission', 'tds'])
                 ->make(true);
         }
         return view('my_services.gas.list', compact('service'));
@@ -183,7 +202,7 @@ class GasController extends Controller
 
     public function export()
     {
-        $data = ElectricityBill::select('electricity_bills.id', 'electricity_bills.transaction_id', 'electricity_bills.consumer_name', 'electricity_bills.consumer_no', 'electricity_bills.bill_no', 'electricity_bills.created_at', 'electricity_bills.bill_amount', 'rproviders.name as provider_name', 'rproviders.code1 as board_id')
+        $data = ElectricityBill::select('electricity_bills.id', 'electricity_bills.transaction_id', 'electricity_bills.consumer_name', 'electricity_bills.consumer_no', 'electricity_bills.bill_no', 'electricity_bills.created_at', 'electricity_bills.due_date', 'electricity_bills.bill_amount', 'electricity_bills.commission', 'electricity_bills.tds', 'rproviders.name as provider_name', 'rproviders.code1 as board_id')
             ->where('electricity_bills.bill_type', 'gas')
             ->where('electricity_bills.user_id', $this->user_id)
             ->join('rproviders', 'rproviders.id', 'electricity_bills.board_id');
@@ -199,11 +218,13 @@ class GasController extends Controller
         $sheet->setCellValue('D1', 'Board');
         $sheet->setCellValue('E1', 'Bill No');
         $sheet->setCellValue('F1', 'Bill Amount');
-        $sheet->setCellValue('G1', 'Due Date');
-        $sheet->setCellValue('H1', 'Created Date');
-        $sheet->setCellValue('I1', 'Status');
-        $sheet->setCellValue('J1', 'Is Refunded');
-        $sheet->setCellValue('K1', 'Provider Name');
+        $sheet->setCellValue('G1', 'Commission Amount');
+        $sheet->setCellValue('H1', 'TDS Amount');
+        $sheet->setCellValue('I1', 'Due Date');
+        $sheet->setCellValue('J1', 'Created Date');
+        $sheet->setCellValue('K1', 'Status');
+        $sheet->setCellValue('L1', 'Is Refunded');
+        $sheet->setCellValue('M1', 'Provider Name');
 
         $rows = 2;
         foreach ($data->get() as $row) {
@@ -213,11 +234,13 @@ class GasController extends Controller
             $sheet->setCellValue('D' . $rows, $row->board_id);
             $sheet->setCellValue('E' . $rows, $row->bill_no);
             $sheet->setCellValue('F' . $rows, $row->bill_amount);
-            $sheet->setCellValue('G' . $rows, Date::PHPToExcel($row->due_date));
-            $sheet->setCellValue('H' . $rows, Date::PHPToExcel($row->created_at));
-            $sheet->setCellValue('I' . $rows, $row->status == 1 ? 'Paid' : 'Pending');
-            $sheet->setCellValue('J' . $rows, $row->is_refunded == 1 ? 'Yes' : 'No');
-            $sheet->setCellValue('K' . $rows, $row->provider_name);
+            $sheet->setCellValue('G' . $rows, $row->commission);
+            $sheet->setCellValue('H' . $rows, $row->tds);
+            $sheet->setCellValue('I' . $rows, Date::PHPToExcel($row->due_date));
+            $sheet->setCellValue('J' . $rows, Date::PHPToExcel($row->created_at));
+            $sheet->setCellValue('K' . $rows, $row->status == 1 ? 'Paid' : 'Pending');
+            $sheet->setCellValue('L' . $rows, $row->is_refunded == 1 ? 'Yes' : 'No');
+            $sheet->setCellValue('M' . $rows, $row->provider_name);
             $rows++;
         }
 
@@ -231,10 +254,10 @@ class GasController extends Controller
             $sheet->getColumnDimension($column->getColumnIndex())->setAutoSize(true);
         }
 
-        $sheet->getStyle('A1:K' . $rows)->getAlignment()->setHorizontal('center');
+        $sheet->getStyle('A1:M' . $rows)->getAlignment()->setHorizontal('center');
         $sheet->getStyle('C1:E' . $rows)->getNumberFormat()->setFormatCode('#');
-        $sheet->getStyle('F1:F' . $rows)->getNumberFormat()->setFormatCode('"₹" #,##0.00_-');
-        $sheet->getStyle('G1:H' . $rows)->getNumberFormat()->setFormatCode(NumberFormat::FORMAT_DATE_DDMMYYYY);
+        $sheet->getStyle('F1:H' . $rows)->getNumberFormat()->setFormatCode('"₹" #,##0.00_-');
+        $sheet->getStyle('I1:J' . $rows)->getNumberFormat()->setFormatCode(NumberFormat::FORMAT_DATE_DDMMYYYY);
 
         $spreadsheet->setActiveSheetIndex(0);
         $fileName = "Gas Bill Export.xlsx";
