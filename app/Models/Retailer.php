@@ -36,7 +36,11 @@ class Retailer extends Authenticatable
         'voucher_id',
         'distributor_id',
         'user_balance',
-        'main_distributor_id'
+        'main_distributor_id',
+        'default_water_board',
+        'default_gas_board',
+        'default_lic_board',
+        'default_electricity_board'
     ];
 
     /**

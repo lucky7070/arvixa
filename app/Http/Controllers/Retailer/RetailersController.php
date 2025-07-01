@@ -2,12 +2,12 @@
 
 namespace App\Http\Controllers\Retailer;
 
-use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Models\BannerAdmin;
-use App\Models\Services;
+use App\Models\Retailer;
 use App\Models\ServicesLog;
-use App\Models\ElectricityBill;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class RetailersController extends Controller
 {
@@ -32,7 +32,7 @@ class RetailersController extends Controller
         return view('retailer.home', compact('services', 'servicesLog', 'banners'));
     }
 
-    public function commission()
+    public function commission(Request $request)
     {
         $servicesLog = ServicesLog::select('services_logs.service_id', 'services.name as service_name', 'services_logs.sale_rate as sale_rate', 'services_logs.retailer_commission as retailer_commission')
             ->leftJoin('services', 'services.id', '=', 'services_logs.service_id')
@@ -42,6 +42,22 @@ class RetailersController extends Controller
             ->orderBy('services.id', 'asc')
             ->get();
 
-        return view('retailer.commission', compact('servicesLog'));
+        $user = $request->user();
+        $providers = DB::table('rproviders')->get()->groupBy('sertype');
+        return view('retailer.commission', compact('servicesLog', 'user', 'providers'));
+    }
+
+
+    public function default_board_save(Request $request)
+    {
+        $validated = $request->validate([
+            'default_water_board'           => ['required', 'integer', 'min:1'],
+            'default_gas_board'             => ['required', 'integer', 'min:1'],
+            'default_lic_board'             => ['required', 'integer', 'min:1'],
+            'default_electricity_board'     => ['required', 'integer', 'min:1'],
+        ]);
+
+        Retailer::where('id', auth('retailer')->id())->update($validated);
+        return to_route('retailer.my-commission')->withSuccess('Default Board updated successfully..!!');
     }
 }

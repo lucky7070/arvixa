@@ -226,7 +226,7 @@ Route::middleware(['auth', 'permission', 'authCheck'])->group(function () {
         // ----------------------- ElectricityController ----------------------------------------------------
         Route::get('electricity-bill', [ElectricityController::class, 'index'])->name('electricity-bill')->middleware('isAllow:114,can_view');
         Route::get('water-bill', [ElectricityController::class, 'waterbill'])->name('water-bill')->middleware('isAllow:114,can_view');
-        Route::get('bills/export/{type}', [ElectricityController::class, 'export'])->name('bills.export')->middleware('isAllow:114,can_view');
+        Route::get('bills/export/{type}', [ElectricityController::class, 'export'])->whereIn('type', ['water', 'gas', 'lic', 'electricity'])->name('bills.export')->middleware('isAllow:114,can_view');
         Route::get('gas-bill', [ElectricityController::class, 'gasbill'])->name('gas-bill')->middleware('isAllow:114,can_view');
         Route::get('lic-bill', [ElectricityController::class, 'licbill'])->name('lic-bill')->middleware('isAllow:114,can_view');
         Route::post('bill/submit', [ElectricityController::class, 'submit'])->name('bill-submit')->middleware('isAllow:114,can_edit');

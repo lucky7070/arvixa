@@ -253,9 +253,9 @@
                         </a>
                     </li>
                     <li class="menu dropdown @routeis('retailer.electricity-bill') active @endrouteis">
-                        <a href="#" class="dropdown-toggle d-flex align-items-center" data-bs-toggle="dropdown" aria-expanded="false">
+                        <a href="#" class="dropdown-toggle d-flex align-items-center justify-content-start" data-bs-toggle="dropdown" aria-expanded="false">
                             <i class="fa-solid fa-file-lines me-2"></i>
-                            <span>Pay Bill</span>
+                            <span>Bill Payment</span>
                         </a>
                         <ul class="dropdown-menu pay-more mt-5">
                             <li><a class="dropdown-item" href="{{ route('retailer.electricity-bill') }}">Electricity Bill</a></li>

@@ -32,7 +32,7 @@
                             <select class="form-control board-id" name="operator" id="operator">
                                 <option value=""> -- Select Board --</option>
                                 @foreach($providers as $provider)
-                                <option value="{{ $provider->id }}">{{ $provider->name }}</option>
+                                <option value="{{ $provider->id }}" @selected(auth()->user()->default_electricity_board == $provider->id)>{{ $provider->name }}</option>
                                 @endforeach
                             </select>
                         </div>
@@ -186,6 +186,4 @@
         })
     });
 </script>
-
-
 @endsection
