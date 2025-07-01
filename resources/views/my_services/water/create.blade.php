@@ -1,5 +1,10 @@
 @extends('layouts.retailer_app')
 
+@section('css')
+<link href="{{ asset('assets/css/tom-select.default.min.css') }}" rel="stylesheet" type="text/css" />
+<link href="{{ asset('assets/css/custom-tomSelect.css') }}" rel="stylesheet" type="text/css" />
+@endsection
+
 @section('content')
 <div class="row">
     <div class="col-12 mb-3">
@@ -24,7 +29,7 @@
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label for="operator" class="form-label">Select Board</label>
-                            <select class="form-control board-id" name="operator" required>
+                            <select class="form-control board-id" name="operator" id="operator" required>
                                 <option value=""> -- Select Board --</option>
                                 @foreach($providers as $provider)
                                 <option value="{{ $provider->id }}">{{ $provider->name }}</option>
@@ -82,9 +87,12 @@
 
 
 @section('js')
+<script src="{{ asset('assets/js/tom-select.base.js') }}"></script>
 <script>
     $(function() {
-        $("#water-fetch-form").validate({
+
+        const tom = new TomSelect("#operator");
+        const validator = $("#water-fetch-form").validate({
             errorClass: "text-danger fs--1",
             errorElement: "span",
             rules: {

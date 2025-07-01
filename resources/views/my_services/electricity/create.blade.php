@@ -1,5 +1,10 @@
 @extends('layouts.retailer_app')
 
+@section('css')
+<link href="{{ asset('assets/css/tom-select.default.min.css') }}" rel="stylesheet" type="text/css" />
+<link href="{{ asset('assets/css/custom-tomSelect.css') }}" rel="stylesheet" type="text/css" />
+@endsection
+
 @section('content')
 <div class="row">
     <div class="col-12 mb-3">
@@ -86,10 +91,11 @@
 
 
 @section('js')
+<script src="{{ asset('assets/js/tom-select.base.js') }}"></script>
 <script>
     $(function() {
-
-        var validator = $("#electricity-fetch-form").validate({
+        const tom = new TomSelect("#operator");
+        const validator = $("#electricity-fetch-form").validate({
             debug: false,
             errorClass: "text-danger fs--1",
             errorElement: "span",
