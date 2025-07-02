@@ -306,16 +306,15 @@
                                             <div class="btn btn-primary" id="rs_btn">
                                                 <span class="">RS.</span>
                                             </div>
-                                            <input type="number" class="form-control" id="amount"
-                                                name="amount">
+                                            <input type="number" class="form-control" id="amount" name="amount">
                                         </div>
-
+                                        <p id="span_informantion" class="instruction-text">Fill the Amount you want to add in a wallet, after scan QR and Pay !</p>
                                         <input type="hidden" id="payment_gateway" name="payment_gateway" value="{{ env('PAYMENT_GATEWAY_NAME') }}">
                                         <button url="{{ route('retailer.upi-payment') }}" type="button"
                                             class="btn btn-primary btn-large mt-3" id="addBalanceBtn">Show QR COde
                                         </button>
                                         <div id="errorMsg" class="text-danger" style="display: none;">Please enter a positive number.</div>
-                                        <span id="span_informantion" class="instruction-text">Fill the Amount you want to add in a wallet, after scan QR and Pay !</span>
+
                                     </div>
                                     <div id="qrCodeContainer" class="w-100 mt-2 text-center"
                                         style="display: none;">
@@ -337,6 +336,10 @@
                                         <li class="list-group-item">
                                             <h6 class="mb-1 fw-semibold">IFSC Code</h6>
                                             <p class="mb-1">{{ $site_settings['company_ifsc_code'] }}</p>
+                                        </li>
+                                        <li class="list-group-item">
+                                            <h6 class="mb-1 fw-semibold">Bank Holder Name</h6>
+                                            <p class="mb-1">{{ $site_settings['bank_holder_name'] }}</p>
                                         </li>
                                     </ul>
                                     <a href="{{ route('retailer.request-money') }}" class="btn btn-sm btn-primary">Request Money</a>

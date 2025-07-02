@@ -38,12 +38,6 @@ class Customer extends Authenticatable
         'user_balance',
         'registor_from',
         'voucher_id',
-        'father_first_name',
-        'father_middle_name',
-        'father_last_name',
-        'itr_password',
-        'address',
-        'pincode',
     ];
 
     protected $appends  = ['name'];
@@ -58,7 +52,7 @@ class Customer extends Authenticatable
     protected function name(): Attribute
     {
         return Attribute::make(
-            get: fn ($value, $row) => trim($row['first_name'] . ' ' . $row['middle_name'] . ' ' . $row['last_name']),
+            get: fn($value, $row) => trim($row['first_name'] . ' ' . $row['middle_name'] . ' ' . $row['last_name']),
             set: function ($value, $row) {
                 $value              = explode(' ', $value);
                 return [
@@ -74,7 +68,7 @@ class Customer extends Authenticatable
     protected function father_name(): Attribute
     {
         return Attribute::make(
-            get: fn ($value, $row) => trim($row['father_first_name'] . ' ' . $row['father_middle_name'] . ' ' . $row['father_last_name']),
+            get: fn($value, $row) => trim($row['father_first_name'] . ' ' . $row['father_middle_name'] . ' ' . $row['father_last_name']),
             set: function ($value, $row) {
                 $value              = explode(' ', $value);
                 return [
@@ -102,7 +96,7 @@ class Customer extends Authenticatable
 
     protected function dateOfBirth(): Attribute
     {
-        return Attribute::make(get: fn ($value, $row) => Carbon::parse($row['dob']));
+        return Attribute::make(get: fn($value, $row) => Carbon::parse($row['dob']));
     }
 
     public function documents()

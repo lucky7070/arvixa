@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class ItReturn extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory,  SoftDeletes;
 
     protected $table    = "service_itr";
     protected $fillable = [
@@ -186,7 +186,7 @@ class ItReturn extends Model
     protected function name(): Attribute
     {
         return Attribute::make(
-            get: fn ($value, $row) => trim($row['first_name'] . ' ' . $row['middle_name'] . ' ' . $row['last_name']),
+            get: fn($value, $row) => trim($row['first_name'] . ' ' . $row['middle_name'] . ' ' . $row['last_name']),
             set: function ($value, $row) {
                 $value              = explode(' ', $value);
                 return [
@@ -202,7 +202,7 @@ class ItReturn extends Model
     protected function fatherName(): Attribute
     {
         return Attribute::make(
-            get: fn ($value, $row) => trim($row['father_first_name'] . ' ' . $row['father_middle_name'] . ' ' . $row['father_last_name']),
+            get: fn($value, $row) => trim($row['father_first_name'] . ' ' . $row['father_middle_name'] . ' ' . $row['father_last_name']),
             set: function ($value, $row) {
                 $value              = explode(' ', $value);
                 return [

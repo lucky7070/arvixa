@@ -25,7 +25,7 @@ return [
         'pan_cards_edit'            => 1,
         'pan_cards_add_digital'     => 2,
         'pan_cards_edit_digital'    => 2,
-        // 'income_tax_return'          => 3,
+        'income_tax_return'          => 3,
         // 'msme_certificate'          => 3,
 
         'water_bill'                => 7,
@@ -37,7 +37,7 @@ return [
     'front_url'     => 'https://pan.arvixa.in/',
     'secret_token'  => '9906bf6e010b53816cf0684eead09923b051c75ca0b5ad6b9e79dec56',
     'mplan_key'     => env('MPLAN_KEY', "ba0fa41bee5146ebe30f8f7e3c10c68b"),
-    
+
     'phoneRegExp'       => "/^(?:(?:\+|0{0,2})91(\s*|[-])?|[0]?)?([6789]\d{2}([ -]?)\d{3}([ -]?)\d{4})$/",
     'emailRegExp'       => '/^(("[\w-\s]+")|([\w-]+(?:\.[\w-]+)*)|("[\w-\s]+")([\w-]+(?:\.[\w-]+)*))(@((?:[\w-]+\.)*\w[\w-]{0,66})\.([a-z]{2,6}(?:\.[a-z]{2})?)$)|(@\[?((25[0-5]\.|2[0-4][0-9]\.|1[0-9]{2}\.|[0-9]{1,2}\.))((25[0-5]|2[0-4][0-9]|1[0-9]{2}|[0-9]{1,2})\.){2}(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[0-9]{1,2})\]?$)/i',
     'aadhaarRegExp'     => "/^[2-9]{1}[0-9]{3}[0-9]{4}[0-9]{4}$/",
@@ -114,10 +114,56 @@ return [
         "6" => "Limited Liability Partnership",
     ],
 
+    'bank_account_type'         => [
+        "1" => "Saving Account",
+        "2" => "Current Account",
+    ],
 
+    'bank_account_holder_type'  => [
+        "1" => "Individual Account",
+        "2" => "Joint Account",
+    ],
 
+    'employeer_types'    => [
+        "1" => "Private",
+        "2" => "Central Government",
+        "3" => "State Government",
+        "4" => "Puboptionc Sector Unit",
+        "5" => "Pensioners - Central Government",
+        "6" => "Pensioners - State Government",
+        "7" => "Pensioners - Puboptionc Sector Undertaking",
+        "8" => "Pensioners - Others",
+    ],
 
+    'rented_house_type'  => [
+        "1" => "Self Occupied",
+        "2" => "Rented",
+        "3" => "Deemed Let Out",
+    ],
 
+    'capital_gain_asset_type' => [
+        "1" => "Mutual Funds",
+        "2" => "Shares",
+        "3" => "Property",
+        "4" => "House",
+        "5" => "Land",
+        "6" => "Building",
+        "7" => "Other",
+    ],
+
+    'business_type_list' => [
+        "1" => "Manufacturing",
+        "2" => "Trading",
+        "3" => "Service",
+    ],
+
+    'itr_file_status_list' => [
+        '0'     => 'Pending',
+        '1'     => 'Submitted',
+        '2'     => 'Completed',
+        '3'     => 'Rejected',
+        '4'     => 'Under Draft',
+    ],
 
 
 

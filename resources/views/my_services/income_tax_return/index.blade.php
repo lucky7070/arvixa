@@ -155,8 +155,8 @@
                     <div class="col-auto mb-2">
                         <div class=" d-flex justify-content-center align-items-center gap-2">
                             <a href="{{ route('file-itr', ['step' => 'income-sources', 'slug' => $itr->slug ]) }}"
-                                class="{{ $itr->slug == null ? 'disabled' : '' }} custom-check btn btn-rounded {{ $itr->is_step_2_complete == 1 ? 'btn-outline-success check-success' : 'btn-outline-danger check-error' }}"
-                                @disabled($itr->slug == null)>
+                                class="{{ !$itr->slug ? 'disabled' : '' }} custom-check btn btn-rounded {{ $itr->is_step_2_complete == 1 ? 'btn-outline-success check-success' : 'btn-outline-danger check-error' }}"
+                                @disabled(!$itr->slug)>
                                 <span class="{{ $itr->is_step_2_complete == 1 ? 'icon' : 'icon second' }}"></span>
                                 Income Sources
                             </a>
@@ -166,8 +166,8 @@
                     <div class="col-auto mb-2">
                         <div class=" d-flex justify-content-center align-items-center gap-2">
                             <a href="{{ route('file-itr', ['step' => 'tax-saving', 'slug' => $itr->slug ]) }}"
-                                class="{{ ($itr->slug == null || $itr->is_step_2_complete == 0) ? 'disabled' : '' }} custom-check btn btn-rounded  {{ $itr->is_step_3_complete == 1 ? 'btn-outline-success check-success' : 'btn-outline-danger check-error' }}"
-                                @disabled($itr->slug == null || $itr->is_step_2_complete == 0)>
+                                class="{{ (!$itr->slug || $itr->is_step_2_complete == 0) ? 'disabled' : '' }} custom-check btn btn-rounded  {{ $itr->is_step_3_complete == 1 ? 'btn-outline-success check-success' : 'btn-outline-danger check-error' }}"
+                                @disabled(!$itr->slug || $itr->is_step_2_complete == 0)>
                                 <span class="{{ $itr->is_step_3_complete == 1 ? 'icon' : 'icon third' }}"></span>
                                 Tax Saving
                             </a>
@@ -177,21 +177,13 @@
                     <div class="col-auto mb-2">
                         <div class=" d-flex justify-content-center align-items-center gap-2">
                             <a href="{{ route('file-itr', ['step' => 'tax-summary', 'slug' => $itr->slug ]) }}"
-                                class="{{ ($itr->slug == null || $itr->is_step_3_complete == 0) ? 'disabled' : '' }} custom-check btn btn-rounded  {{ $itr->is_step_4_complete == 1 ? 'btn-outline-success check-success' : 'btn-outline-danger check-error' }}"
-                                @disabled($itr->slug == null || $itr->is_step_3_complete == 0)>
+                                class="{{ (!$itr->slug || $itr->is_step_3_complete == 0) ? 'disabled' : '' }} custom-check btn btn-rounded  {{ $itr->is_step_4_complete == 1 ? 'btn-outline-success check-success' : 'btn-outline-danger check-error' }}"
+                                @disabled(!$itr->slug || $itr->is_step_3_complete == 0)>
                                 <span class="{{ $itr->is_step_4_complete == 1 ? 'icon' : 'icon forth' }}"></span>
                                 Tax Summary
                             </a>
                         </div>
                     </div>
-
-                    @if(config('ayt.nsdl.itr_service_remote_use', false) && $itr->is_step_4_complete == 1)
-                    <div class="col-auto mb-2">
-                        <a href="{{ route('itr-files.sync', $itr->slug ) }}" class="btn btn-outline-primary me-1">
-                            <i class="fa fa-refresh me-1"></i>
-                        </a>
-                    </div>
-                    @endif
                 </div>
             </div>
             <div class="col-12">

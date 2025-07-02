@@ -14,7 +14,7 @@
                         <h6 class="fw-bold text-secondary">ITR Details</h6>
                     </div>
                     <div>
-                        @if(config('ayt.nsdl.itr_service_remote_use', false))
+                        @if(config('ayt.itr_service_remote_use', false))
                         <a href="{{ route('reports.itr-files.sync', $itr->slug ) }}" class="btn btn-primary me-1">
                             <i class="fa fa-refresh me-1"></i> Sync
                         </a>
@@ -68,8 +68,8 @@
                     @endif
                 </ul>
 
-                @if(userCan(130, 'can_edit') && in_array($itr->status, [ 1, 2, 4]) &&
-                !config('ayt.nsdl.itr_service_remote_use', false) )
+                @if(userCan(110, 'can_edit') && in_array($itr->status, [ 1, 2, 4]) &&
+                !config('ayt.itr_service_remote_use', false) )
                 <div class="col-md-12 mb-3">
                     <form id="updateStatus" method="post" enctype="multipart/form-data">
                         <div class="row">
@@ -1077,8 +1077,7 @@
 @section('js')
 <script src="{{ asset('assets/js/sweetalert2.min.js') }}"></script>
 <script type="text/javascript">
-
-    $(function () {
+    $(function() {
         let itr_submit_file_1 = "{{ $itr->itr_submit_file_1 }}";
 
         $("#updateStatus").validate({
@@ -1125,7 +1124,7 @@
                     required: "Please select message.",
                 },
             },
-            submitHandler: function (form) {
+            submitHandler: function(form) {
                 var formData = new FormData(form);
                 $('#overlay').show();
                 $.ajax({
@@ -1134,7 +1133,7 @@
                     contentType: false,
                     processData: false,
                     type: 'POST',
-                    success: function (data) {
+                    success: function(data) {
                         if (data.status) {
                             toastr.success(data.message);
                             // $(form).trigger("reset")

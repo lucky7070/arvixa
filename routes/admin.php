@@ -24,6 +24,7 @@ use App\Http\Controllers\MainDistributorController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\Reports\PanCardController;
 use App\Http\Controllers\Reports\ElectricityController;
+use App\Http\Controllers\Reports\ITRController;
 use App\Http\Controllers\Retailer\PanCardController as RetailerPanCardController;
 use App\Http\Controllers\SliderController;
 use App\Http\Controllers\TestimonialController;
@@ -224,11 +225,19 @@ Route::middleware(['auth', 'permission', 'authCheck'])->group(function () {
         Route::post('pan-cards/statistics', [PanCardController::class, 'statistics'])->name('pan-cards.statistics');
 
         // ----------------------- ElectricityController ----------------------------------------------------
-        Route::get('electricity-bill', [ElectricityController::class, 'index'])->name('electricity-bill')->middleware('isAllow:114,can_view');
-        Route::get('water-bill', [ElectricityController::class, 'waterbill'])->name('water-bill')->middleware('isAllow:114,can_view');
-        Route::get('bills/export/{type}', [ElectricityController::class, 'export'])->whereIn('type', ['water', 'gas', 'lic', 'electricity'])->name('bills.export')->middleware('isAllow:114,can_view');
-        Route::get('gas-bill', [ElectricityController::class, 'gasbill'])->name('gas-bill')->middleware('isAllow:114,can_view');
-        Route::get('lic-bill', [ElectricityController::class, 'licbill'])->name('lic-bill')->middleware('isAllow:114,can_view');
-        Route::post('bill/submit', [ElectricityController::class, 'submit'])->name('bill-submit')->middleware('isAllow:114,can_edit');
+        Route::get('electricity-bill', [ElectricityController::class, 'index'])->name('electricity-bill')->middleware('isAllow:110,can_view');
+        Route::get('water-bill', [ElectricityController::class, 'waterbill'])->name('water-bill')->middleware('isAllow:110,can_view');
+        Route::get('bills/export/{type}', [ElectricityController::class, 'export'])->whereIn('type', ['water', 'gas', 'lic', 'electricity'])->name('bills.export')->middleware('isAllow:110,can_view');
+        Route::get('gas-bill', [ElectricityController::class, 'gasbill'])->name('gas-bill')->middleware('isAllow:110,can_view');
+        Route::get('lic-bill', [ElectricityController::class, 'licbill'])->name('lic-bill')->middleware('isAllow:110,can_view');
+        Route::post('bill/submit', [ElectricityController::class, 'submit'])->name('bill-submit')->middleware('isAllow:110,can_edit');
+
+
+        Route::get('itr-files', [ITRController::class, 'index'])->name('itr-files')->middleware('isAllow:110,can_view');
+        Route::post('itr-files', [ITRController::class, 'update_status'])->name('itr-files')->middleware('isAllow:110,can_edit');
+        Route::get('itr-files/export', [ITRController::class, 'export'])->name('itr-files.export')->middleware('isAllow:110,can_view');
+        Route::get('itr-files/template', [ITRController::class, 'template'])->name('itr-files.template')->middleware('isAllow:110,can_view');
+        Route::get('itr-files/{slug}', [ITRController::class, 'details'])->name('itr-files.details')->middleware('isAllow:110,can_view');
+        Route::get('itr-files-sync/{slug}', [ITRController::class, 'sync'])->name('itr-files.sync')->middleware('isAllow:110,can_view');
     });
 });

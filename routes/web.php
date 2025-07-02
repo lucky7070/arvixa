@@ -22,6 +22,7 @@ use App\Http\Controllers\Webhook\MintraGatewayController;
 use App\Http\Controllers\Retailer\ElectricityController;
 use App\Http\Controllers\Retailer\WaterController;
 use App\Http\Controllers\Retailer\GasController;
+use App\Http\Controllers\Retailer\ITRController;
 use App\Http\Controllers\Retailer\LicController;
 
 /*
@@ -220,6 +221,13 @@ Route::middleware(['auth:retailer', 'authCheck'])->group(function () {
         Route::post('update-pan-card/{card_type?}', [PanCardController::class, 'update_pan_card_save'])->name('update-pan-card')->whereIn('card_type', ['physical', 'digital']);
         Route::post('incomplete-pan-card', [PanCardController::class, 'incomplete_pan_card'])->name('incomplete-pan-card');
         Route::get('pan-card-export/{card_type?}', [PanCardController::class, 'export'])->name('pan-card-export')->whereIn('card_type', ['physical', 'digital']);
+
+
+        // ITR Routes
+        Route::get('file-itr/{step?}/{slug?}', [ITRController::class, 'index'])->name('file-itr')->whereIn('step', ['personal-info', 'income-sources', 'tax-saving', 'tax-summary']);
+        Route::post('file-itr/{step?}/{slug?}', [ITRController::class, 'save'])->name('file-itr')->whereIn('step', ['personal-info', 'income-sources', 'tax-saving', 'tax-summary']);
+        Route::get('itr-list', [ITRController::class, 'itr_list'])->name('itr-list');
+        Route::get('itr-files-sync/{slug}', [ITRController::class, 'sync'])->name('itr-files.sync');
     });
 });
 

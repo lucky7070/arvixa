@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\ServicesLog;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Str;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Log;
@@ -234,4 +235,17 @@ function uploadfromUrl($url, $path = 'admin')
 function hash_decrypt($hash, $secretKey)
 {
     return openssl_decrypt($hash, "AES-128-ECB", $secretKey);
+}
+
+function saveFile(UploadedFile|null $image, $folder = 'admin'): null|string
+{
+    try {
+        if ($image) {
+            return $image->storeAs($folder, time() . '_' . rand(1000, 9999) . '.' . $image->getClientOriginalExtension());
+        } else {
+            return null;
+        }
+    } catch (\Throwable $th) {
+        return null;
+    }
 }

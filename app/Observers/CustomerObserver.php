@@ -15,11 +15,4 @@ class CustomerObserver
         $customer->image        = $customer->image ? $customer->image : 'customer/avatar.png';
         $customer->password     = $customer->password ? $customer->password : Hash::make($customer->mobile);
     }
-
-    public function created(Customer $customer)
-    {
-        // Code after save
-        $customer->userId = orderId($customer->id, 'C', 6);
-        $customer->saveQuietly();
-    }
 }

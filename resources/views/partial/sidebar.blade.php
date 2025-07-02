@@ -168,8 +168,8 @@
         @endif
 
         @if(userCan([114,122,130]))
-        <li class="menu @routeis('reports.pan-cards') active @endrouteis">
-            <a href="#reports" data-bs-toggle="collapse" aria-expanded="{{ routeis('reports.pan-cards') }}"
+        <li class="menu @routeis('reports.pan-cards,reports.pan-cards,reports.electricity-bill,reports.water-bill,reports.gas-bill,reports.lic-bill,reports.itr-files') active @endrouteis">
+            <a href="#reports" data-bs-toggle="collapse" aria-expanded="{{ routeis('reports.pan-cards,reports.pan-cards,reports.electricity-bill,reports.water-bill,reports.gas-bill,reports.lic-bill,reports.itr-files') }}"
                 class="dropdown-toggle">
                 <div class="">
                     <i class="fa-duotone fa-file-chart-column"></i>
@@ -177,7 +177,7 @@
                 </div>
                 <div> <i class="fa-solid fa-chevron-right"></i> </div>
             </a>
-            <ul class="collapse submenu list-unstyled @routeis('reports.pan-cards') show @endrouteis" id="reports"
+            <ul class="collapse submenu list-unstyled @routeis('reports.pan-cards,reports.pan-cards,reports.electricity-bill,reports.water-bill,reports.gas-bill,reports.lic-bill,reports.itr-files') show @endrouteis" id="reports"
                 data-bs-parent="#accordionExample">
                 @if(userCan(114))
                 <li class="@routeis('reports.pan-cards') active @endrouteis">
@@ -219,6 +219,15 @@
                 <li class="@routeis('reports.lic-bill') active @endrouteis">
                     <a class="nav-link" href="{{ route('reports.lic-bill') }}" data-bs-toggle="" aria-expanded="false">
                         <div class="d-flex align-items-center"><span class="nav-link-text ps-1">LIC Bill Report</span>
+                        </div>
+                    </a>
+                </li>
+                @endif
+
+                @if(userCan(110))
+                <li class="@routeis('reports.itr-files') active @endrouteis">
+                    <a class="nav-link" href="{{ route('reports.itr-files') }}" data-bs-toggle="" aria-expanded="false">
+                        <div class="d-flex align-items-center"><span class="nav-link-text ps-1">ITR Files</span>
                         </div>
                     </a>
                 </li>

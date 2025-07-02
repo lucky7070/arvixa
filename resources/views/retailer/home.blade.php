@@ -161,7 +161,37 @@
 
             {{-- Service 4 :: ITR Service --}}
             @if(config('constant.service_ids.income_tax_return') == $row->service_id)
-            <!--  -->
+            <div class="col-md-6 mb-3">
+                <div class="card">
+                    <div class="card-header bg-blue">
+                        <div class="d-flex align-items-center justify-content-between gap-2">
+                            <h5 class="card-title text-white">
+                                <img src="{{ asset('assets/img/itr-tax.png') }}" style="height: 36px"
+                                    alt="">
+                                {{ $row->service_name }}
+                            </h5>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-sm-6 mb-2">
+                                <a href="{{ route('file-itr', ['step' => 'personal-info']) }}" type="button"
+                                    class="btn btn-lg  btn-outline-danger w-100 px-2 py-1 d-flex align-items-center justify-content-center gap-2">
+                                    <i class="fa-duotone fa-sparkles fs-4"></i>
+                                    New Application
+                                </a>
+                            </div>
+                            <div class="col-sm-6 mb-2">
+                                <a href="{{ route('itr-list') }}"
+                                    class="btn btn-lg btn-outline-secondary w-100 py-1 d-flex align-items-center justify-content-center gap-2">
+                                    <i class="fa-duotone fa-list fs-4"></i>
+                                    Filed ITR List
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
             @endif
 
             {{-- Service 4 :: NSDL Payment bank --}}

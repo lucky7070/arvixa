@@ -9,10 +9,6 @@
                 <button type="submit" form="exportForm" class="btn btn-outline-success">
                     <i class="fa fa-file-excel me-1"></i> Export
                 </button>
-                <a class="btn btn-outline-secondary" href="{{ route('reports.itr-files.template') }}" target="_blank"
-                    rel="noopener noreferrer">
-                    <i class="fa fa-file-excel me-1"></i> Export Template
-                </a>
             </div>
         </div>
     </div>
@@ -77,12 +73,12 @@
 
 @section('js')
 <script type="text/javascript">
-    $(function () {
+    $(function() {
         var table = $('.table-datatable').DataTable({
             ajax: {
                 url: "{{ request()->url() }}",
                 searching: false,
-                data: function (d) {
+                data: function(d) {
                     d.start_date = $("#start_date").val();
                     d.end_date = $("#end_date").val();
                     d.status = $("#status").val();
@@ -91,8 +87,7 @@
             order: [
                 [4, 'desc']
             ],
-            columns: [
-                {
+            columns: [{
                     data: 'token',
                     name: 'token',
                     class: 'fw-bold'
@@ -125,13 +120,13 @@
             ]
         });
 
-        $('.submit').click(function () {
+        $('.submit').click(function() {
             var start_date = $("#start_date").val();
             var end_date = $("#end_date").val();
             table.draw();
         });
 
-        $('.reset').click(function () {
+        $('.reset').click(function() {
             setTimeout(() => table.draw(), 500)
         });
     });

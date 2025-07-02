@@ -146,7 +146,7 @@
                                                 Gender <span class="text-danger">*</span>
                                             </label>
                                             <div class="col-sm-8">
-                                                <div class="input-group">
+                                                <div class="input-group gap-2">
                                                     <div class="custom-control-inline">
                                                         <input type="radio" id="male" value="1" name="gender"
                                                             class="custom-control-input"

@@ -78,43 +78,35 @@ class GasController extends Controller
                 "data"      => $err
             ]);
         } else {
-            $provider = DB::table('rproviders')->where('id', $request->operator)->first();
-            if (!$provider) {
-                return response()->json(['error' => 'Invalid provider selected.'], 400);
-            }
+            $fetch =   FetchBill::create([
+                'transaction_id'    => (string) Str::uuid(),
+                'service_id'        => $this->service_id,
+                'user_id'           => $this->user_id,
+                'board_id'          => $request->operator,
+                'consumer_no'       => $request->consumer_no,
+                'consumer_name'     => '',
+                'bill_no'           => '',
+                'bill_amount'       => null,
+                'due_date'          => now()->format('Y-m-d'),
+            ]);
 
-            $record = BillPay::getGasBill($request->consumer_no, $provider->code1);
-            if (!empty($record['CustomerName'])) {
-                $fetch =   FetchBill::create([
-                    'transaction_id'    => (string) Str::uuid(),
-                    'service_id'        => $this->service_id,
-                    'user_id'           => $this->user_id,
-                    'board_id'          => $request->operator,
-                    'consumer_no'       => $request->consumer_no,
-                    'consumer_name'     => @$record['CustomerName'],
-                    'bill_no'           => @$record['BillNumber'] ?? '',
-                    'bill_amount'       => @$record['Billamount'] ?? '',
-                    'due_date'          => Carbon::parse($record['Duedate'])->format('Y-m-d')
-                ]);
-
-                return response()->json([
-                    'status'    => true,
-                    'message'   => 'Bill details fetched successfully.',
-                    'data'      => $fetch
-                ]);
-            } else {
-                return response()->json([
-                    'status'    => false,
-                    'message'   => 'No bill amount pending.',
-                    'data'      => []
-                ]);
-            }
+            return response()->json([
+                'status'    => true,
+                'message'   => 'Bill details fetched successfully.',
+                'data'      => $fetch
+            ]);
         }
     }
 
     public function paymentSubmit(Request $request)
     {
-        $request->validate(['transaction_id'      => ['required', 'string', 'max:255']]);
+        $request->validate([
+            'transaction_id'        => ['required', 'string', 'max:255'],
+            'consumer_name'         => ['required', 'string', 'min:3', 'max:100'],
+            'bill_no'               => ['required', 'digits_between:5,20'],
+            'bill_amount'           => ['required', 'numeric', 'min:1', 'max:9999999'],
+            'due_date'              => ['required', 'date'],
+        ]);
 
         $data = FetchBill::where('transaction_id', $request->get('transaction_id'))->where('user_id', $this->user_id)->where('service_id', $this->service_id)->first();
         if (!$data)  return back()->with('error', "Invalid Request..!!");
@@ -130,7 +122,7 @@ class GasController extends Controller
             return to_route('retailer.dashboard')->with('error', "Service Can't be used..!!");
 
         $balance = (float) $this->user->user_balance;
-        $amountDue = (float) $data->bill_amount;
+        $amountDue = (float) $request->bill_amount;
 
         if ($amountDue == 0)  return back()->with('error', "No bill amount pending..!!");
 
@@ -144,11 +136,11 @@ class GasController extends Controller
             'user_id'           => $data->user_id,
             'board_id'          => $data->board_id,
             'consumer_no'       => $data->consumer_no,
-            'consumer_name'     => $data->consumer_name,
-            'bill_no'           => $data->bill_no,
-            'bill_amount'       => (float) $data->bill_amount,
+            'consumer_name'     => $request->consumer_name,
+            'bill_no'           => $request->bill_no,
+            'bill_amount'       => (float) $request->bill_amount,
             'bill_type'         => 'gas',
-            'due_date'          => $data->due_date,
+            'due_date'          => $request->due_date,
             'commission'        => $commission,
             'tds'               => $tds_amount,
         ]);
