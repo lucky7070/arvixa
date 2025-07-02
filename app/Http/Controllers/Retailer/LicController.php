@@ -62,8 +62,7 @@ class LicController extends Controller
     {
         $validation = Validator::make($request->all(), [
             'operator'      => ['required', 'numeric', 'min:1'],
-            'consumer_no'   => ['required', 'string', 'min:2', 'max:50'],
-            'bu_code'       => ['required_if:operator,48', 'string', 'min:2', 'max:50'],
+            'consumer_no'   => ['required', 'string', 'min:2', 'max:50']
         ]);
 
         if ($validation->fails()) {
