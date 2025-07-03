@@ -227,7 +227,7 @@
                             class="dropdown-toggle">
                             <div>
                                 <i class="fa fa-inr"></i>
-                                <span>Request Money</span>
+                                <span>Wallet Load</span>
                             </div>
                         </a>
                     </li>
@@ -247,7 +247,7 @@
                         @endrouteis">
                         <a href="{{ route('retailer.my-commission') }}" class="dropdown-toggle">
                             <div>
-                                <i class="fa-solid fa-file-lines"></i>
+                                <i class="fa-solid fa-chart-line"></i>
                                 <span>My Commission</span>
                             </div>
                         </a>
@@ -390,7 +390,7 @@
     <!-- ===============================================-->
     <!--    FOOTER      -->
     <!-- ===============================================-->
-    <div class="footer-wrapper mt-0">
+    <div class="footer-wrapper mt-0 p-3 rounded-0" style="background-color: #e7f4ff; border-top: 1px solid #0084eb">
         <div class="footer-section f-section-1">
             <p class=""> {{ $site_settings['copyright'] }}</p>
         </div>

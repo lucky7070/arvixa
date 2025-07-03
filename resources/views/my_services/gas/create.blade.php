@@ -48,7 +48,8 @@
             </div>
         </div>
     </div>
-    <div class="col-12" id="bill-details" style="display: none;">
+
+    <div class="col-12 mb-3" id="bill-details" style="display: none;">
         <div class="card">
             <div class="card-header">
                 <h5 class="card-title">Bill Details</h5>
@@ -57,21 +58,17 @@
                 <form id="submit-form" action="{{ route('retailer.gas-payment-submit') }}" method="post">
                     <div class="row mb-3">
                         <div class="col-md-3 mb-3">
-                            <label for="consumer_name">Biller Name</label>
+                            <label for="consumer_name">Customer Name</label>
                             <input type="text" class="form-control text-dark consumer-name" name="consumer_name">
                             <input type="hidden" class="" name="transaction_id" id="transaction-id">
                             @csrf
                         </div>
                         <div class="col-md-3 mb-3">
-                            <label for="bill_no">Bill Number</label>
-                            <input type="text" class="form-control text-dark bill-no" name="bill_no">
-                        </div>
-                        <div class="col-md-3 mb-3">
-                            <label for="bill_amount">Pending Bill Amount</label>
+                            <label for="bill_amount">Amount</label>
                             <input type="number" class="form-control text-dark bill-amount" name="bill_amount">
                         </div>
                         <div class="col-md-3 mb-3">
-                            <label for="due_date">Due Date</label>
+                            <label for="due_date">Booking Date</label>
                             <input type="date" class="form-control text-dark due-date" name="due_date">
                         </div>
                         <div class="col-md-12">
@@ -82,7 +79,60 @@
             </div>
         </div>
     </div>
+
+    <div class="col-12 mb-3">
+        <div class="card">
+            <div class="card-header">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="card-title">Recent Transactions</h5>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table id="zero-config" class="table custom-table table-striped fs--1 mb-0 table-datatable dataTable no-footer">
+                        <thead class="bg-200 text-900">
+                            <tr role="row">
+                                <th>Transaction Id</th>
+                                <th>Consumer Name</th>
+                                <th>Consumer No</th>
+                                <th>Bill No</th>
+                                <th>Payment Date</th>
+                                <th>Bill Amount</th>
+                                <th>Commission</th>
+                                <th>TDS Amount</th>
+                                <th>Provider Name</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($resent as $key => $row)
+                            <tr role="row" class="{{ $key % 2 === 0 ? 'even' : 'odd' }}">
+                                <td>
+                                    <b class="text-primary view" data-all='{!! htmlspecialchars(json_encode($row)) !!}'>{{ $row->transaction_id }}</b>
+                                </td>
+                                <td><b>{{ $row->consumer_name }}</b></td>
+                                <td>{{ $row->consumer_no }}</td>
+                                <td>{{ $row->bill_no ?? '--' }}</td>
+                                <td>{{ $row->created_at->format('d F, Y h:i A') }}</td>
+                                <td><b class="text-primary">₹ {{ $row->bill_amount }}.00</b></td>
+                                <td><b class="text-success">₹ 0.{{ $row->commission }}</b></td>
+                                <td><b class="text-danger">₹ 0.{{ $row->tds }}</b></td>
+                                <td>{{ $row->provider_name }}</td>
+                                <td>
+                                    <button class="btn btn-sm btn-primary view" data-all='{!! htmlspecialchars(json_encode($row)) !!}'>View</button>
+                                </td>
+                            </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
+
+@include('partial.receipt-modal')
+
 @endsection
 
 @section('js')
@@ -209,6 +259,27 @@
                     }
                 });
             }
+        });
+
+        $(document).on('click', '.view', function() {
+            const data = $(this).data('all');
+            const date = new Date(data.created_at);
+            const formatter = new Intl.DateTimeFormat('en-US', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+            });
+
+            $('#bill-details .created_at').text(formatter.format(date))
+            $('#bill-details .consumer_name').text(data.consumer_name)
+            $('#bill-details .bill_amount').text(data.bill_amount)
+            $('#bill-details .consumer_no').text(data.consumer_no)
+            $('#bill-details .transaction_id').text(data.transaction_id)
+            $('#bill-details .type').text('Gas Bill')
+            $('#receipt').prop('href', "{{ $receipt }}" + data.id)
+            $('#recipt-modal').modal('show')
         });
     });
 </script>

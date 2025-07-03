@@ -4,14 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Models\State;
 use App\Models\Ledger;
-use App\Models\Retailer;
 use App\Rules\CheckUnique;
-use App\Models\Distributor;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use App\Models\PaymentRequest;
-use Illuminate\Support\Carbon;
-use App\Models\MainDistributor;
 use \Yajra\Datatables\Datatables;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
@@ -19,12 +15,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Storage;
-use PhpOffice\PhpSpreadsheet\Style\Fill;
 use Illuminate\Support\Facades\Validator;
-use PhpOffice\PhpSpreadsheet\Shared\Date;
-use PhpOffice\PhpSpreadsheet\Spreadsheet;
-use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
-use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
 use App\Http\Controllers\Common\LedgerController;
 use App\Models\UpiPayments;
 
@@ -82,10 +73,11 @@ class ProfileController extends Controller
 
     public function update_password(Request $request)
     {
-        $validated = $request->validate([
+        $request->validate([
             'old_password' => ['required', 'string', 'max:100'],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
         ]);
+
         if (Hash::check($request->old_password, Auth::guard($this->route)->user()->password)) {
             $user = Auth::guard($this->route)->user();
             $user->password = Hash::make($request['password']);
@@ -100,8 +92,12 @@ class ProfileController extends Controller
 
     public function update(Request $request)
     {
+        if (in_array($this->user_type, [2, 3, 4])) {
+            return back()->with('error', "Profile can't be update..!!");
+        }
+
         $table = getTableFromURL($request);
-        $validated = $request->validate([
+        $request->validate([
             'name'      => ['required', 'string', 'max:255'],
             'email'     => ['required', new CheckUnique($table, Auth::guard($this->route)->id())],
             'mobile'    => ['required', 'digits:10', new CheckUnique($table, Auth::guard($this->route)->id()), 'regex:' . config('constant.phoneRegExp')],

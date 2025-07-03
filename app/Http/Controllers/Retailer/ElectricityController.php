@@ -55,7 +55,17 @@ class ElectricityController extends Controller
             return to_route('retailer.dashboard')->with('error', "Service Can't be used..!!");
 
         $providers = DB::table('rproviders')->where('sertype', 'electricity')->get();
-        return view('my_services.electricity.create', compact('providers'));
+
+        $receipt = route('retailer.download.receipt', '') . '/';
+        $resent = ElectricityBill::select('electricity_bills.id', 'electricity_bills.transaction_id', 'electricity_bills.consumer_name', 'electricity_bills.consumer_no', 'electricity_bills.bill_no', 'electricity_bills.created_at', 'electricity_bills.due_date', 'electricity_bills.bill_amount', 'electricity_bills.bu_code', 'electricity_bills.commission', 'electricity_bills.tds', 'rproviders.name as provider_name')
+            ->where('electricity_bills.bill_type', 'electricity')
+            ->where('electricity_bills.user_id', $this->user_id)
+            ->join('rproviders', 'rproviders.id', 'electricity_bills.board_id')
+            ->limit(5)
+            ->latest()
+            ->get();
+
+        return view('my_services.electricity.create', compact('providers', 'resent', 'receipt'));
     }
 
     public function getDetails(Request $request)
@@ -178,7 +188,8 @@ class ElectricityController extends Controller
 
             return Datatables::of($data)->addIndexColumn()
                 ->editColumn('transaction_id', function ($row) {
-                    return '<b>' . $row['transaction_id'] . '</b>';
+                    $row->receipt = route('retailer.download.receipt', $row->id);
+                    return '<b class="text-primary view" data-all="' . htmlspecialchars(json_encode($row))  . '">' . $row['transaction_id'] . '</b>';
                 })
                 ->editColumn('created_at', function ($row) {
                     return $row['created_at'] ? $row['created_at']->format('d M, Y') : '';
@@ -199,7 +210,8 @@ class ElectricityController extends Controller
                     return  $row['bu_code'] ?? '--';
                 })
                 ->addColumn('action', function ($row) {
-                    return  '<a href="' . route('retailer.download.receipt', $row->id) . '" class="btn btn-sm btn-primary">Download</a>';
+                    $row->receipt = route('retailer.download.receipt', $row->id);
+                    return '<button class="btn btn-sm btn-primary view" data-all="' . htmlspecialchars(json_encode($row))  . '">View</button>';
                 })
                 ->rawColumns(['transaction_id', 'consumer_name', 'bill_amount', 'action', 'commission', 'tds'])
                 ->make(true);
@@ -281,7 +293,8 @@ class ElectricityController extends Controller
     public function downloadReceipt($id)
     {
         $bill = ElectricityBill::with(['retailer', 'board'])->findOrFail($id);
-        $pdf = PDF::loadView('retailer.receipts.electricity', compact('bill'));
+        $service = 'Electricity Bill';
+        $pdf = PDF::loadView('retailer.receipts.receipt', compact('bill', 'service'));
         return $pdf->download('Electricity_Receipt_' . $bill->bill_no . '.pdf');
     }
 }

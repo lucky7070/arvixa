@@ -11,80 +11,82 @@
                 <h5 class="mb-0">Profile Settings</h5>
             </div>
             <div class="card-body">
-                <form class="row g-3" method="POST" id="profileUpdate" action="{{ request()->url() }}"
+                <form method="POST" id="profileUpdate" action="{{ request()->url() }}"
                     enctype='multipart/form-data'>
-                    @csrf
-                    <div class="col-lg-6">
-                        <label class="form-label" for="name">First Name</label>
-                        <input class="form-control" id="name" name="name" type="text"
-                            value="{{ old('name', $user->name) }}" />
-                        @error('name')
-                        <span class="invalid-feedback" role="alert">
-                            <strong>{{ $message }}</strong>
-                        </span>
-                        @enderror
-                    </div>
-                    <div class="col-lg-6">
-                        <label class="form-label" for="email">Email</label>
-                        <input class="form-control" id="email" type="email" name="email"
-                            value="{{ old('email', $user->email) }}" />
-                        @error('email')
-                        <span class="invalid-feedback" role="alert">
-                            <strong>{{ $message }}</strong>
-                        </span>
-                        @enderror
-                    </div>
-                    <div class="col-lg-6">
-                        <label class="form-label" for="mobile">Mobile</label>
-                        <input class="form-control" id="mobile" name="mobile" type="text"
-                            value="{{ old('mobile', $user->mobile) }}" />
-                        @error('mobile')
-                        <span class="invalid-feedback" role="alert">
-                            <strong>{{ $message }}</strong>
-                        </span>
-                        @enderror
-                    </div>
+                    <fieldset class="row g-3" @disabled(in_array($user['route'], ['distributor', 'main_distributor' , 'retailer' ]))>
+                        @csrf
+                        <div class="col-lg-6">
+                            <label class="form-label" for="name">First Name</label>
+                            <input class="form-control text-dark" id="name" name="name" type="text"
+                                value="{{ old('name', $user->name) }}" />
+                            @error('name')
+                            <span class="invalid-feedback" role="alert">
+                                <strong>{{ $message }}</strong>
+                            </span>
+                            @enderror
+                        </div>
+                        <div class="col-lg-6">
+                            <label class="form-label" for="email">Email</label>
+                            <input class="form-control text-dark" id="email" type="email" name="email"
+                                value="{{ old('email', $user->email) }}" />
+                            @error('email')
+                            <span class="invalid-feedback" role="alert">
+                                <strong>{{ $message }}</strong>
+                            </span>
+                            @enderror
+                        </div>
+                        <div class="col-lg-6">
+                            <label class="form-label" for="mobile">Mobile</label>
+                            <input class="form-control text-dark" id="mobile" name="mobile" type="text"
+                                value="{{ old('mobile', $user->mobile) }}" />
+                            @error('mobile')
+                            <span class="invalid-feedback" role="alert">
+                                <strong>{{ $message }}</strong>
+                            </span>
+                            @enderror
+                        </div>
 
-                    <div class="col-lg-6">
-                        <label class="form-label" for="state_id">State</label>
-                        <select name="state_id" onchange="getCity(this.value)" class="form-select" id="state_id">
-                            <option value="">Select State</option>
-                            @foreach ($states as $state)
-                            <option value="{{ $state['id'] }}" {{ old('state_id', $user['state_id'])==$state['id']
+                        <div class="col-lg-6">
+                            <label class="form-label" for="state_id">State</label>
+                            <select name="state_id" onchange="getCity(this.value)" class="form-select" id="state_id">
+                                <option value="">Select State</option>
+                                @foreach ($states as $state)
+                                <option value="{{ $state['id'] }}" {{ old('state_id', $user['state_id'])==$state['id']
                                 ? 'selected' : '' }}>
-                                {{ $state['name'] }}
-                            </option>
-                            @endforeach
-                        </select>
-                        @error('state_id')
-                        <span class="invalid-feedback" role="alert">
-                            <strong>{{ $message }}</strong>
-                        </span>
-                        @enderror
-                    </div>
-                    <div class="col-lg-6">
-                        <label class="form-label" for="city_id">City</label>
-                        <select name="city_id" class="form-select" id="city_id">
-                            <option value="">Select City</option>
-                        </select>
-                        @error('city_id')
-                        <span class="invalid-feedback" role="alert">
-                            <strong>{{ $message }}</strong>
-                        </span>
-                        @enderror
-                    </div>
-                    <div class="col-lg-6">
-                        <label class="form-label" for="image">Image</label>
-                        <input class="form-control" id="image" name="image" type="file" value="" />
-                        @error('image')
-                        <span class="invalid-feedback" role="alert">
-                            <strong>{{ $message }}</strong>
-                        </span>
-                        @enderror
-                    </div>
-                    <div class="col-12 d-flex justify-content-end">
-                        <button class="btn btn-primary" type="submit">Update</button>
-                    </div>
+                                    {{ $state['name'] }}
+                                </option>
+                                @endforeach
+                            </select>
+                            @error('state_id')
+                            <span class="invalid-feedback" role="alert">
+                                <strong>{{ $message }}</strong>
+                            </span>
+                            @enderror
+                        </div>
+                        <div class="col-lg-6">
+                            <label class="form-label" for="city_id">City</label>
+                            <select name="city_id" class="form-select" id="city_id">
+                                <option value="">Select City</option>
+                            </select>
+                            @error('city_id')
+                            <span class="invalid-feedback" role="alert">
+                                <strong>{{ $message }}</strong>
+                            </span>
+                            @enderror
+                        </div>
+                        <div class="col-lg-6">
+                            <label class="form-label" for="image">Image</label>
+                            <input class="form-control" id="image" name="image" type="file" value="" />
+                            @error('image')
+                            <span class="invalid-feedback" role="alert">
+                                <strong>{{ $message }}</strong>
+                            </span>
+                            @enderror
+                        </div>
+                        <div class="col-12 d-flex justify-content-end">
+                            <button class="btn btn-primary" type="submit">Update</button>
+                        </div>
+                    </fieldset>
                 </form>
             </div>
         </div>
@@ -138,12 +140,16 @@
 @section('js')
 <script>
     var city_id = "{{ old('city_id', $user['city_id']) }}";
+
     function getCity(state_id) {
         $.ajax({
             type: "POST",
             url: "{{ route('cities.list') }}",
-            data: { state_id, city_id },
-            success: function (data) {
+            data: {
+                state_id,
+                city_id
+            },
+            success: function(data) {
                 $('#city_id').html(data);
             },
         });
@@ -151,8 +157,8 @@
     }
 
 
-    $(function () {
-        $('#profile-image').change(function () {
+    $(function() {
+        $('#profile-image').change(function() {
             var formData = new FormData();
             formData.append('image', this.files[0]);
             $.ajax({
@@ -161,7 +167,7 @@
                 data: formData,
                 contentType: false,
                 processData: false,
-                success: function (result) {
+                success: function(result) {
                     if (result.success) {
                         toastr.success(result?.message);
                         $('.profile-img').attr('src', result?.image);

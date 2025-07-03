@@ -40,6 +40,9 @@
         </div>
     </div>
 </div>
+
+@include('partial.receipt-modal')
+
 @endsection
 
 @section('js')
@@ -93,6 +96,27 @@
                     searchable: false
                 },
             ]
+        });
+
+        $(document).on('click', '.view', function() {
+            const data = $(this).data('all');
+            const date = new Date(data.created_at);
+            const formatter = new Intl.DateTimeFormat('en-US', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+            });
+
+            $('#bill-details .created_at').text(formatter.format(date))
+            $('#bill-details .consumer_name').text(data.consumer_name)
+            $('#bill-details .bill_amount').text(data.bill_amount)
+            $('#bill-details .consumer_no').text(data.consumer_no)
+            $('#bill-details .transaction_id').text(data.transaction_id)
+            $('#bill-details .type').text('Gas Bill')
+            $('#receipt').prop('href', data.receipt)
+            $('#recipt-modal').modal('show')
         });
     });
 </script>
