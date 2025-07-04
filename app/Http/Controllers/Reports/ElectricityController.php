@@ -66,9 +66,9 @@ class ElectricityController extends Controller
                 })
                 ->addColumn('action', function ($row) {
                     $btn = '';
-                    if ($row['status'] === 1) {
+                    if ($row['status'] == 1) {
                         $btn .= '<span class="badge badge-light-success mb-2 me-4">Paid</span>';
-                    } else if ($row['status'] === 2) {
+                    } else if ($row['status'] == 2) {
                         $btn .= '<span class="badge badge-light-danger">Cancelled</span>';
                         if ($row['is_refunded'] == 1)   $btn .= '<span class="badge badge-light-warning ms-1">Refunded</span>';
                     } else {
@@ -111,7 +111,7 @@ class ElectricityController extends Controller
             if ($request->filled('is_refunded')) {
                 $query->where('electricity_bills.is_refunded', $request->get('is_refunded'));
             }
-
+            // dd($query->get()->toArray());
             return Datatables::of($query)->addIndexColumn()
                 ->editColumn('retailer_name', function ($row) {
                     return '<b>' . $row['retailer_name'] . '</b><br><b>' . $row['retailer_userId'] . '</b>';
@@ -130,9 +130,9 @@ class ElectricityController extends Controller
                 })
                 ->addColumn('action', function ($row) {
                     $btn = '';
-                    if ($row['status'] === 1) {
+                    if ($row['status'] == 1) {
                         $btn .= '<span class="badge badge-light-success mb-2 me-4">Paid</span>';
-                    } else if ($row['status'] === 2) {
+                    } else if ($row['status'] == 2) {
                         $btn .= '<span class="badge badge-light-danger">Cancelled</span>';
                         if ($row['is_refunded'] == 1)   $btn .= '<span class="badge badge-light-warning ms-1">Refunded</span>';
                     } else {
@@ -191,9 +191,9 @@ class ElectricityController extends Controller
                 })
                 ->addColumn('action', function ($row) {
                     $btn = '';
-                    if ($row['status'] === 1) {
+                    if ($row['status'] == 1) {
                         $btn .= '<span class="badge badge-light-success mb-2 me-4">Paid</span>';
-                    } else if ($row['status'] === 2) {
+                    } else if ($row['status'] == 2) {
                         $btn .= '<span class="badge badge-light-danger">Cancelled</span>';
                         if ($row['is_refunded'] == 1)   $btn .= '<span class="badge badge-light-warning ms-1">Refunded</span>';
                     } else {
@@ -252,9 +252,9 @@ class ElectricityController extends Controller
                 })
                 ->addColumn('action', function ($row) {
                     $btn = '';
-                    if ($row['status'] === 1) {
+                    if ($row['status'] == 1) {
                         $btn .= '<span class="badge badge-light-success mb-2 me-4">Paid</span>';
-                    } else if ($row['status'] === 2) {
+                    } else if ($row['status'] == 2) {
                         $btn .= '<span class="badge badge-light-danger">Cancelled</span>';
                         if ($row['is_refunded'] == 1)   $btn .= '<span class="badge badge-light-warning ms-1">Refunded</span>';
                     } else {

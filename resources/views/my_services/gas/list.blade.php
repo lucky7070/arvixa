@@ -87,7 +87,7 @@
                 },
                 {
                     data: 'provider_name',
-                    name: 'provider_name',
+                    name: 'rproviders.name',
                 },
                 {
                     data: 'action',
