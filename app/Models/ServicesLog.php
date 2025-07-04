@@ -23,6 +23,11 @@ class ServicesLog extends Model
         'main_distributor_commission',
         'distributor_commission',
         'retailer_commission',
+        'commission_slots',
+    ];
+
+    protected $casts = [
+        'commission_slots' => 'array',
     ];
 
     public function service()

@@ -27,12 +27,14 @@ class ServiceUsesLog extends Model
         'retailer_commission',
         'main_distributor_commission',
         'distributor_commission',
+        'commission_slots',
         'is_refunded',
         'created_at'
     ];
 
     protected $casts = [
         'created_at' => 'datetime',
+        'commission_slots' => 'array',
     ];
 
     public function retailer()

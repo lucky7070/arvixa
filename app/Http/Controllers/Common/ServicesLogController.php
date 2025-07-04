@@ -11,7 +11,7 @@ use App\Models\Services;
 
 class ServicesLogController extends Controller
 {
-    public static function update(int $service_id = null, int $user_id = null, int $user_type = 1,  $force = false): bool
+    public static function update(int $service_id, int $user_id, int $user_type = 1,  $force = false): bool
     {
         $data = [
             'user_id'       => $user_id,
@@ -70,6 +70,7 @@ class ServicesLogController extends Controller
                     'distributor_id'                => $retailer->distributor_id,
                     'main_distributor_commission'   => $service->default_md_commission,
                     'distributor_commission'        => $service->default_d_commission,
+                    'commission_slots'              => $service->commission_slots,
                 ]);
             } else if ($retailer && $retailer->distributor_id && $retailer->main_distributor_id == null) {
                 $data = array_merge($data, [
@@ -79,6 +80,7 @@ class ServicesLogController extends Controller
                     'distributor_id'                => $retailer->distributor_id,
                     'main_distributor_commission'   => 0,
                     'distributor_commission'        => $service->default_d_commission,
+                    'commission_slots'              => $service->commission_slots,
                 ]);
             } else {
                 $data = array_merge($data, [
@@ -88,10 +90,11 @@ class ServicesLogController extends Controller
                     'distributor_id'                => null,
                     'main_distributor_commission'   => 0,
                     'distributor_commission'        => 0,
+                    'commission_slots'              => $service->commission_slots,
                 ]);
             }
         }
-
+        
         ServicesLog::create($data);
     }
 

@@ -112,6 +112,9 @@ Route::middleware(['auth', 'permission', 'authCheck'])->group(function () {
     Route::get('services/{id}', [ServiceController::class, 'edit'])->name('services.edit')->middleware('isAllow:107,can_edit');
     Route::post('services/{id}', [ServiceController::class, 'update'])->name('services.edit')->middleware('isAllow:107,can_edit');
     Route::delete('services', [ServiceController::class, 'delete'])->name('services.delete')->middleware('isAllow:107,can_delete');
+    Route::get('services/{slug}/commission-slots', [ServiceController::class, 'commission_slots'])->name('services.commission_slots')->middleware('isAllow:107,can_edit');
+    Route::post('services/{slug}/commission-slots', [ServiceController::class, 'commission_slots_save'])->name('services.commission_slots')->middleware('isAllow:107,can_edit');
+
 
     // ----------------------- CMS Routes ----------------------------------------------------
     Route::get('cms', [CmsController::class, 'index'])->name('cms')->middleware('isAllow:108,can_view');

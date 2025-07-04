@@ -249,3 +249,17 @@ function saveFile(UploadedFile|null $image, $folder = 'admin'): null|string
         return null;
     }
 }
+
+
+function getCommissionSlot(array|null $slots, float $amount): ?array
+{
+    if (gettype($slots) != 'array') return null;
+
+    foreach ($slots as $slot) {
+        if ($amount >= $slot['start'] && $amount <= $slot['end']) {
+            return $slot;
+        }
+    }
+
+    return null;
+}

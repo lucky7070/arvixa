@@ -207,9 +207,9 @@
                 },
                 bill_no: {
                     required: true,
-                    digits: true,
+                    email: true,
                     minlength: 5,
-                    maxlength: 20
+                    maxlength: 50
                 },
                 bill_amount: {
                     required: true,
@@ -230,9 +230,9 @@
                 },
                 bill_no: {
                     required: "Please enter bill number",
-                    digits: "Bill number should contain only numbers",
-                    minlength: "Bill number must be at least 5 digits",
-                    maxlength: "Bill number cannot exceed 20 digits"
+                    email: "Provide valid email.",
+                    minlength: "Bill number must be at least 5 characters.",
+                    maxlength: "Bill number cannot exceed 50 characters."
                 },
                 bill_amount: {
                     required: "Please enter bill amount",

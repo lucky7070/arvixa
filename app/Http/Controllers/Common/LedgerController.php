@@ -422,10 +422,8 @@ class LedgerController extends Controller
     {
         DB::beginTransaction();
         try {
-            $user_id    = $bill->user_id;
-            $user_type  = 4;
-            $current    = now();
 
+            $current    = now();
             $serviceName = 'Bill';
             if (config('constant.service_ids.electricity_bill') === $serviceLog->service_id) {
                 $serviceName = 'Electricity Bill';
@@ -437,54 +435,161 @@ class LedgerController extends Controller
                 $serviceName = 'GAS Bill';
             }
 
-            Ledger::create([
-                'voucher_no'                => Str::uuid(),
-                'user_id'                   => $user_id,
-                'user_type'                 => $user_type,
-                'amount'                    => $bill->bill_amount,
-                'payment_type'              => 2,
-                'payment_method'            => 5,
-                'particulars'               => $serviceName . " Charge for Transaction : " . $bill->transaction_id,
-                'date'                      => $current,
-                'trans_details_json'        => null,
-                'service_id'                => $serviceLog->service_id,
-                'request_id'                => $bill->id,
-                'paid_by'                   => null,
-            ]);
+            $balanceChange = 0;
+            // Retailer Bill Amount
+            if ($bill->bill_amount && $bill->bill_amount > 0) {
+                $balanceChange -= $bill->bill_amount;
+                Ledger::create([
+                    'voucher_no'                => Str::uuid(),
+                    'user_id'                   => $serviceLog->user_id,
+                    'user_type'                 => 4,
+                    'amount'                    => $bill->bill_amount,
+                    'payment_type'              => 2,
+                    'payment_method'            => 5,
+                    'particulars'               => $serviceName . " Charge for Transaction : " . $bill->transaction_id,
+                    'date'                      => $current,
+                    'trans_details_json'        => null,
+                    'service_id'                => $serviceLog->service_id,
+                    'request_id'                => $bill->id,
+                    'paid_by'                   => null,
+                ]);
+            }
 
-            Ledger::create([
-                'voucher_no'                => Str::uuid(),
-                'user_id'                   => $user_id,
-                'user_type'                 => $user_type,
-                'amount'                    => $bill->commission,
-                'payment_type'              => 1,
-                'payment_method'            => 5,
-                'particulars'               => $serviceName . " Commission for Transaction : " . $bill->transaction_id,
-                'date'                      => $current,
-                'trans_details_json'        => null,
-                'service_id'                => $serviceLog->service_id,
-                'request_id'                => $bill->id,
-                'paid_by'                   => null,
-            ]);
+            // Retailer Commission
+            if ($bill->commission && $bill->commission > 0) {
+                $balanceChange += $bill->commission;
+                Ledger::create([
+                    'voucher_no'                => Str::uuid(),
+                    'user_id'                   => $serviceLog->user_id,
+                    'user_type'                 => 4,
+                    'amount'                    => $bill->commission,
+                    'payment_type'              => 1,
+                    'payment_method'            => 5,
+                    'particulars'               => $serviceName . " Commission for Transaction : " . $bill->transaction_id,
+                    'date'                      => $current,
+                    'trans_details_json'        => null,
+                    'service_id'                => $serviceLog->service_id,
+                    'request_id'                => $bill->id,
+                    'paid_by'                   => null,
+                ]);
+            }
 
-            Ledger::create([
-                'voucher_no'                => Str::uuid(),
-                'user_id'                   => $user_id,
-                'user_type'                 => $user_type,
-                'amount'                    => $bill->tds,
-                'payment_type'              => 2,
-                'payment_method'            => 5,
-                'particulars'               => $serviceName . " TDS Charge for Transaction : " . $bill->transaction_id,
-                'date'                      => $current,
-                'trans_details_json'        => null,
-                'service_id'                => $serviceLog->service_id,
-                'request_id'                => $bill->id,
-                'paid_by'                   => null,
-            ]);
+            // Retailer TDS
+            if ($bill->tds && $bill->tds > 0) {
+                $balanceChange -= $bill->tds;
+                Ledger::create([
+                    'voucher_no'                => Str::uuid(),
+                    'user_id'                   => $serviceLog->user_id,
+                    'user_type'                 => 4,
+                    'amount'                    => $bill->tds,
+                    'payment_type'              => 2,
+                    'payment_method'            => 5,
+                    'particulars'               => $serviceName . " TDS Charge for Transaction : " . $bill->transaction_id,
+                    'date'                      => $current,
+                    'trans_details_json'        => null,
+                    'service_id'                => $serviceLog->service_id,
+                    'request_id'                => $bill->id,
+                    'paid_by'                   => null,
+                ]);
+            }
+
+            // For retailer: decrement (balance reduces by net charge)
+            if ($balanceChange != 0)   Retailer::where('id', $bill->user_id)->decrement('user_balance', $balanceChange);
+
+            if ($serviceLog->distributor_id) {
+
+                // Distributor Commission
+                $balanceChange = 0;
+                if ($bill->commission_distributor && $bill->commission_distributor > 0) {
+                    $balanceChange  += $bill->commission_distributor;
+                    Ledger::create([
+                        'voucher_no'                => Str::uuid(),
+                        'user_id'                   => $serviceLog->distributor_id,
+                        'user_type'                 => 3,
+                        'amount'                    => $bill->commission_distributor,
+                        'payment_type'              => 1,
+                        'payment_method'            => 5,
+                        'particulars'               => $serviceName . " Commission for Transaction : " . $bill->transaction_id,
+                        'date'                      => $current,
+                        'trans_details_json'        => null,
+                        'service_id'                => $serviceLog->service_id,
+                        'request_id'                => $bill->id,
+                        'paid_by'                   => null,
+                    ]);
+                }
+
+                // Distributor TDS
+                if ($bill->tds_distributor && $bill->tds_distributor > 0) {
+                    $balanceChange  -= $bill->tds_distributor;
+                    Ledger::create([
+                        'voucher_no'                => Str::uuid(),
+                        'user_id'                   => $serviceLog->distributor_id,
+                        'user_type'                 => 3,
+                        'amount'                    => $bill->tds_distributor,
+                        'payment_type'              => 2,
+                        'payment_method'            => 5,
+                        'particulars'               => $serviceName . " TDS Charge for Transaction : " . $bill->transaction_id,
+                        'date'                      => $current,
+                        'trans_details_json'        => null,
+                        'service_id'                => $serviceLog->service_id,
+                        'request_id'                => $bill->id,
+                        'paid_by'                   => null,
+                    ]);
+                }
+
+                // For distributors: increment (balance increases by net commission)
+                if ($balanceChange != 0) Distributor::where('id', $serviceLog->distributor_id)->increment('user_balance', $balanceChange);
+            }
+
+            if ($serviceLog->main_distributor_id) {
+
+                // Main Distributor Commission
+                $balanceChange = 0;
+                if ($bill->commission_main_distributor && $bill->commission_main_distributor > 0) {
+                    $balanceChange  += $bill->commission_main_distributor;
+                    Ledger::create([
+                        'voucher_no'                => Str::uuid(),
+                        'user_id'                   => $serviceLog->main_distributor_id,
+                        'user_type'                 => 2,
+                        'amount'                    => $bill->commission_main_distributor,
+                        'payment_type'              => 1,
+                        'payment_method'            => 5,
+                        'particulars'               => $serviceName . " Commission for Transaction : " . $bill->transaction_id,
+                        'date'                      => $current,
+                        'trans_details_json'        => null,
+                        'service_id'                => $serviceLog->service_id,
+                        'request_id'                => $bill->id,
+                        'paid_by'                   => null,
+                    ]);
+                }
+
+                // Main Distributor TDS
+                if ($bill->tds_main_distributor && $bill->tds_main_distributor > 0) {
+                    $balanceChange  -= $bill->tds_main_distributor;
+                    Ledger::create([
+                        'voucher_no'                => Str::uuid(),
+                        'user_id'                   => $serviceLog->main_distributor_id,
+                        'user_type'                 => 2,
+                        'amount'                    => $bill->tds_main_distributor,
+                        'payment_type'              => 2,
+                        'payment_method'            => 5,
+                        'particulars'               => $serviceName . " TDS Charge for Transaction : " . $bill->transaction_id,
+                        'date'                      => $current,
+                        'trans_details_json'        => null,
+                        'service_id'                => $serviceLog->service_id,
+                        'request_id'                => $bill->id,
+                        'paid_by'                   => null,
+                    ]);
+                }
+
+                // For main distributors: increment (balance increases by net commission)
+                if ($balanceChange != 0)  MainDistributor::where('id', $serviceLog->main_distributor_id)->increment('user_balance', $balanceChange);
+            }
+
 
             ServiceUsesLog::create([
-                'user_id'                       => $user_id,
-                'user_type'                     => $user_type,
+                'user_id'                       => $serviceLog->user_id,
+                'user_type'                     => 4,
                 'customer_id'                   => 0,
                 'service_id'                    => $serviceLog->service_id,
                 'request_id'                    => $bill->id,
@@ -493,14 +598,13 @@ class LedgerController extends Controller
                 'sale_rate'                     => $serviceLog->sale_rate,
                 'main_distributor_id'           => $serviceLog->main_distributor_id,
                 'distributor_id'                => $serviceLog->distributor_id,
-                'main_distributor_commission'   => $serviceLog->main_distributor_commission,
-                'distributor_commission'        => $serviceLog->distributor_commission,
+                'main_distributor_commission'   => $bill->commission_main_distributor,
+                'distributor_commission'        => $bill->commission_distributor,
                 'retailer_commission'           => $serviceLog->retailer_commission,
+                'commission_slots'              => $serviceLog->commission_slots,
                 'is_refunded'                   => 0,
                 'created_at'                    => $current,
             ]);
-
-            Retailer::where('id', $bill->user_id)->decrement('user_balance', $bill->bill_amount + $bill->commission - $bill->tds);
 
             DB::commit();
             return true;
@@ -514,9 +618,8 @@ class LedgerController extends Controller
     {
         DB::beginTransaction();
         try {
-            $user_id    = $bill->user_id;
-            $user_type  = 4;
-            $current    = now();
+
+            $current = now();
             $serviceName = 'Bill';
             if (config('constant.service_ids.electricity_bill') === $serviceLog->service_id) {
                 $serviceName = 'Electricity Bill';
@@ -528,53 +631,170 @@ class LedgerController extends Controller
                 $serviceName = 'GAS Bill';
             }
 
-            Ledger::create([
-                'voucher_no'                => Str::uuid(),
-                'user_id'                   => $user_id,
-                'user_type'                 => $user_type,
-                'amount'                    => $bill->bill_amount,
-                'payment_type'              => 1,
-                'payment_method'            => 5,
-                'particulars'               => $serviceName . " Refund for Transaction : " . $bill->transaction_id,
-                'date'                      => $current,
-                'trans_details_json'        => null,
-                'service_id'                => $serviceLog->service_id,
-                'request_id'                => $bill->id,
-                'paid_by'                   => null,
-            ]);
+            $balanceChange = 0;
 
-            Ledger::create([
-                'voucher_no'                => Str::uuid(),
-                'user_id'                   => $user_id,
-                'user_type'                 => $user_type,
-                'amount'                    => $bill->commission,
-                'payment_type'              => 2,
-                'payment_method'            => 5,
-                'particulars'               => $serviceName . " Commission Refund for Transaction : " . $bill->transaction_id,
-                'date'                      => $current,
-                'trans_details_json'        => null,
-                'service_id'                => $serviceLog->service_id,
-                'request_id'                => $bill->id,
-                'paid_by'                   => null,
-            ]);
+            // Refund Bill Amount (credit to retailer)
+            if ($bill->bill_amount && $bill->bill_amount > 0) {
+                $balanceChange += $bill->bill_amount;
+                Ledger::create([
+                    'voucher_no'         => Str::uuid(),
+                    'user_id'            => $serviceLog->user_id,
+                    'user_type'          => 4,
+                    'amount'             => $bill->bill_amount,
+                    'payment_type'       => 1, // Credit
+                    'payment_method'     => 5,
+                    'particulars'        => $serviceName . " Refund for Transaction: " . $bill->transaction_id,
+                    'date'               => $current,
+                    'trans_details_json' => null,
+                    'service_id'         => $serviceLog->service_id,
+                    'request_id'         => $bill->id,
+                    'paid_by'            => null,
+                ]);
+            }
 
-            Ledger::create([
-                'voucher_no'                => Str::uuid(),
-                'user_id'                   => $user_id,
-                'user_type'                 => $user_type,
-                'amount'                    => $bill->tds,
-                'payment_type'              => 1,
-                'payment_method'            => 5,
-                'particulars'               => $serviceName . " TDS Refund for Transaction : " . $bill->transaction_id,
-                'date'                      => $current,
-                'trans_details_json'        => null,
-                'service_id'                => $serviceLog->service_id,
-                'request_id'                => $bill->id,
-                'paid_by'                   => null,
-            ]);
+            // Reverse Commission (debit from retailer)
+            if ($bill->commission && $bill->commission > 0) {
+                $balanceChange -= $bill->commission;
+                Ledger::create([
+                    'voucher_no'         => Str::uuid(),
+                    'user_id'            => $serviceLog->user_id,
+                    'user_type'          => 4,
+                    'amount'             => $bill->commission,
+                    'payment_type'       => 2, // Debit
+                    'payment_method'     => 5,
+                    'particulars'        => $serviceName . " Commission Reversal for Transaction: " . $bill->transaction_id,
+                    'date'               => $current,
+                    'trans_details_json' => null,
+                    'service_id'         => $serviceLog->service_id,
+                    'request_id'         => $bill->id,
+                    'paid_by'            => null,
+                ]);
+            }
 
+            // Refund TDS (credit to retailer)
+            if ($bill->tds && $bill->tds > 0) {
+                $balanceChange += $bill->tds;
+                Ledger::create([
+                    'voucher_no'         => Str::uuid(),
+                    'user_id'            => $serviceLog->user_id,
+                    'user_type'          => 4,
+                    'amount'             => $bill->tds,
+                    'payment_type'       => 1, // Credit
+                    'payment_method'     => 5,
+                    'particulars'        => $serviceName . " TDS Refund for Transaction: " . $bill->transaction_id,
+                    'date'               => $current,
+                    'trans_details_json' => null,
+                    'service_id'         => $serviceLog->service_id,
+                    'request_id'         => $bill->id,
+                    'paid_by'            => null,
+                ]);
+            }
+
+            // Update retailer balance
+            if ($balanceChange != 0) {
+                Retailer::where('id', $serviceLog->user_id)->increment('user_balance', $balanceChange);
+            }
+
+            // Handle distributor refunds if applicable
+            if ($serviceLog->distributor_id) {
+                $distributorBalanceChange = 0;
+
+                // Reverse Distributor Commission
+                if ($bill->commission_distributor && $bill->commission_distributor > 0) {
+                    $distributorBalanceChange -= $bill->commission_distributor;
+                    Ledger::create([
+                        'voucher_no'         => Str::uuid(),
+                        'user_id'            => $serviceLog->distributor_id,
+                        'user_type'          => 3,
+                        'amount'             => $bill->commission_distributor,
+                        'payment_type'       => 2, // Debit
+                        'payment_method'     => 5,
+                        'particulars'        => $serviceName . " Commission Reversal for Transaction: " . $bill->transaction_id,
+                        'date'               => $current,
+                        'trans_details_json' => null,
+                        'service_id'         => $serviceLog->service_id,
+                        'request_id'         => $bill->id,
+                        'paid_by'            => null,
+                    ]);
+                }
+
+                // Refund Distributor TDS
+                if ($bill->tds_distributor && $bill->tds_distributor > 0) {
+                    $distributorBalanceChange += $bill->tds_distributor;
+                    Ledger::create([
+                        'voucher_no'         => Str::uuid(),
+                        'user_id'            => $serviceLog->distributor_id,
+                        'user_type'          => 3,
+                        'amount'             => $bill->tds_distributor,
+                        'payment_type'       => 1, // Credit
+                        'payment_method'     => 5,
+                        'particulars'        => $serviceName . " TDS Refund for Transaction: " . $bill->transaction_id,
+                        'date'               => $current,
+                        'trans_details_json' => null,
+                        'service_id'         => $serviceLog->service_id,
+                        'request_id'         => $bill->id,
+                        'paid_by'            => null,
+                    ]);
+                }
+
+                if ($distributorBalanceChange != 0) {
+                    Distributor::where('id', $serviceLog->distributor_id)
+                        ->decrement('user_balance', abs($distributorBalanceChange));
+                }
+            }
+
+            // Handle main distributor refunds if applicable
+            if ($serviceLog->main_distributor_id) {
+                $mainDistributorBalanceChange = 0;
+
+                // Reverse Main Distributor Commission
+                if ($bill->commission_main_distributor && $bill->commission_main_distributor > 0) {
+                    $mainDistributorBalanceChange -= $bill->commission_main_distributor;
+                    Ledger::create([
+                        'voucher_no'         => Str::uuid(),
+                        'user_id'            => $serviceLog->main_distributor_id,
+                        'user_type'          => 2,
+                        'amount'             => $bill->commission_main_distributor,
+                        'payment_type'       => 2, // Debit
+                        'payment_method'     => 5,
+                        'particulars'        => $serviceName . " Commission Reversal for Transaction: " . $bill->transaction_id,
+                        'date'               => $current,
+                        'trans_details_json' => null,
+                        'service_id'         => $serviceLog->service_id,
+                        'request_id'         => $bill->id,
+                        'paid_by'            => null,
+                    ]);
+                }
+
+                // Refund Main Distributor TDS
+                if ($bill->tds_main_distributor && $bill->tds_main_distributor > 0) {
+                    $mainDistributorBalanceChange += $bill->tds_main_distributor;
+                    Ledger::create([
+                        'voucher_no'         => Str::uuid(),
+                        'user_id'            => $serviceLog->main_distributor_id,
+                        'user_type'          => 2,
+                        'amount'             => $bill->tds_main_distributor,
+                        'payment_type'       => 1, // Credit
+                        'payment_method'     => 5,
+                        'particulars'        => $serviceName . " TDS Refund for Transaction: " . $bill->transaction_id,
+                        'date'               => $current,
+                        'trans_details_json' => null,
+                        'service_id'         => $serviceLog->service_id,
+                        'request_id'         => $bill->id,
+                        'paid_by'            => null,
+                    ]);
+                }
+
+                if ($mainDistributorBalanceChange != 0) {
+                    MainDistributor::where('id', $serviceLog->main_distributor_id)
+                        ->decrement('user_balance', abs($mainDistributorBalanceChange));
+                }
+            }
+
+            // Update service log and bill status
             $serviceLog->update(['is_refunded' => 1]);
             $bill->update(['status' => 2, 'is_refunded' => 1]);
+
             DB::commit();
             return true;
         } catch (\Throwable $th) {

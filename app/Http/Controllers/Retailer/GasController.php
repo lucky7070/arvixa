@@ -138,20 +138,44 @@ class GasController extends Controller
         // Check if user has enough wallet balance
         if ($balance < $amountDue) return back()->with('error', "Insufficient Balance, please recharge your wallet..!!");
 
-        $commission = round((float) $data->bill_amount * $serviceLog->retailer_commission / 100);
-        $tds_amount = round($commission * (float) $request->site_settings['tds_percent']);
+        $commission = 0;
+        $tds_amount = 0;
+        $commission_distributor = 0;
+        $tds_distributor = 0;
+        $commission_main_distributor = 0;
+        $tds_main_distributor = 0;
+
+        if ($serviceLog->retailer_commission > 0) {
+            $commission = round((float) $amountDue * $serviceLog->retailer_commission / 100);
+            $tds_amount = round($commission * (float) $request->site_settings['tds_percent'] / 100);
+        }
+
+        if ($serviceLog->distributor_commission > 0) {
+            $commission_distributor = round((float) $amountDue * $serviceLog->distributor_commission / 100);
+            $tds_distributor = round($commission_distributor * (float) $request->site_settings['tds_percent'] / 100);
+        }
+
+        if ($serviceLog->main_distributor_commission > 0) {
+            $commission_main_distributor = round((float) $amountDue * $serviceLog->main_distributor_commission / 100);
+            $tds_main_distributor = round($commission_main_distributor * (float) $request->site_settings['tds_percent'] / 100);
+        }
+
         $bill =   ElectricityBill::create([
-            'transaction_id'    => 'TXN' . str()->upper(str()->random(10)),
-            'user_id'           => $data->user_id,
-            'board_id'          => $data->board_id,
-            'consumer_no'       => $data->consumer_no,
-            'consumer_name'     => $request->consumer_name,
-            'bill_no'           => $request->bill_no,
-            'bill_amount'       => (float) $request->bill_amount,
-            'bill_type'         => 'gas',
-            'due_date'          => $request->due_date,
-            'commission'        => $commission,
-            'tds'               => $tds_amount,
+            'transaction_id'                => 'TXN' . str()->upper(str()->random(10)),
+            'user_id'                       => $data->user_id,
+            'board_id'                      => $data->board_id,
+            'consumer_no'                   => $data->consumer_no,
+            'consumer_name'                 => $request->consumer_name,
+            'bill_no'                       => $request->bill_no,
+            'bill_amount'                   => $amountDue,
+            'bill_type'                     => 'gas',
+            'due_date'                      => $request->due_date,
+            'commission'                    => $commission,
+            'tds'                           => $tds_amount,
+            'commission_distributor'        => $commission_distributor,
+            'tds_distributor'               => $tds_distributor,
+            'commission_main_distributor'   => $commission_main_distributor,
+            'tds_main_distributor'          => $tds_main_distributor,
         ]);
 
         $state =  LedgerController::chargeForBillPayment($bill, $serviceLog);

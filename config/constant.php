@@ -30,8 +30,8 @@ return [
 
         'water_bill'                => 7,
         'electricity_bill'          => 8,
-        'lic_premium'               => 9,
-        'gas_payment'               => 10
+        'gas_payment'               => 9,
+        'lic_premium'               => 10,
     ],
 
     'front_url'     => 'https://pan.arvixa.in/',
@@ -166,11 +166,16 @@ return [
     ],
 
 
-
-
-
-
-
+    'commission-slab-services' => [7, 8, 10],
+    'bill-slab' => [
+        ['start' => 1,      'end' => 200,   'commission'        => 0],
+        ['start' => 201,    'end' => 999,   'commission'        => 0],
+        ['start' => 1000,   'end' => 9999,  'commission'        => 0],
+        ['start' => 10000,  'end' => 14999,     'commission'    => 0],
+        ['start' => 15000,  'end' => 24999,     'commission'    => 0],
+        ['start' => 25000,  'end' => 100000,    'commission'    => 0],
+        ['start' => 100001, 'end' => 10000000,  'commission'    => 0],
+    ]
 
 
 ];

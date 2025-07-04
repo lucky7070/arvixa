@@ -28,7 +28,11 @@ class ElectricityBill extends Model
         'is_refunded',
         'bu_code',
         'commission',
-        'tds'
+        'tds',
+        'commission_distributor',
+        'tds_distributor',
+        'commission_main_distributor',
+        'tds_main_distributor',
     ];
 
     // Cast these fields as dates

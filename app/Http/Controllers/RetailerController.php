@@ -34,7 +34,7 @@ class RetailerController extends Controller
 
     public function index(Request $request)
     {
-        
+
         if ($request->ajax()) {
             $query = Retailer::query();
             $query->with(['main_distributor', 'distributor']);
@@ -134,7 +134,7 @@ class RetailerController extends Controller
 
         $data = Retailer::create($data);
         SendWelComeEmail::dispatch($data, $request->site_settings);
-        return redirect(route('retailers'))->with('success', 'Retailer Added Successfully!!');
+        return to_route('retailers')->with('success', 'Retailer Added Successfully!!');
     }
 
     public function edit($id)
@@ -144,7 +144,7 @@ class RetailerController extends Controller
             ->leftJoin('distributors', 'distributors.id', '=', 'retailers.distributor_id')
             ->first();
         if ($retailer == null) {
-            return redirect(route('retailers'))->with('error', 'Retailer Not Found!!');
+            return to_route('retailers')->with('error', 'Retailer Not Found!!');
         }
 
         $main_distributors = MainDistributor::select('id', 'name')->where('status', 1)->get();
@@ -155,7 +155,7 @@ class RetailerController extends Controller
     {
         $retailer = Retailer::firstWhere('id', $id);
         if ($retailer == null) {
-            return redirect(route('retailers'))->with('error', 'Retailer Not Found!!');
+            return to_route('retailers')->with('error', 'Retailer Not Found!!');
         }
 
         $validated = [
@@ -205,7 +205,7 @@ class RetailerController extends Controller
         }
 
         $retailer->update($data);
-        return redirect(route('retailers'))->with('success', 'Retailer Updated Successfully!!');
+        return to_route('retailers')->with('success', 'Retailer Updated Successfully!!');
     }
 
     public function delete(Request $request)
@@ -246,7 +246,7 @@ class RetailerController extends Controller
     {
         $user = Retailer::with(['main_distributor:id,name', 'distributor:id,name'])->firstWhere('slug', $slug);
         if ($user == null) {
-            return redirect(route('retailers'))->with('error', 'Retailer Not Found!!');
+            return to_route('retailers')->with('error', 'Retailer Not Found!!');
         }
 
         if ($request->ajax()) {
@@ -367,7 +367,7 @@ class RetailerController extends Controller
     {
         $user = Retailer::with(['main_distributor:id,name', 'distributor:id,name'])->firstWhere('slug', $slug);
         if ($user == null) {
-            return redirect(route('retailers'))->with('error', 'Retailer Not Found!!');
+            return to_route('retailers')->with('error', 'Retailer Not Found!!');
         }
 
         if ($request->ajax()) {
@@ -461,7 +461,7 @@ class RetailerController extends Controller
             'main_distributor_commission'   => 'required|numeric',
             'retailer_commission'           => 'required|numeric',
         ]);
-        
+
         $err = array();
         foreach ($validator->errors()->toArray() as $key => $value) {
             $err[$key] = $value[0];
@@ -484,9 +484,10 @@ class RetailerController extends Controller
         }
 
         if (
-            $service_log['sale_rate']                   != $request->sale_rate               ||
-            $service_log['distributor_commission']      != $request->distributor_commission  ||
-            $service_log['retailer_commission']      != $request->retailer_commission  ||
+            $service_log['sale_rate']                   != $request->sale_rate              ||
+            $service_log['distributor_commission']      != $request->distributor_commission ||
+            $service_log['retailer_commission']         != $request->retailer_commission    ||
+            $service_log['commission_slots']            != $request->commission_slots       ||
             $service_log['main_distributor_commission'] != $request->main_distributor_commission
         ) {
             ServicesLog::where('id', $request->id)->update([
@@ -506,12 +507,12 @@ class RetailerController extends Controller
                 'main_distributor_commission'   => $request->main_distributor_commission,
                 'distributor_commission'        => $request->distributor_commission,
                 'retailer_commission'           => $request->retailer_commission,
+                'commission_slots'              => $request->commission_slots,
                 'main_distributor_id'           => $service_log->main_distributor_id,
                 'distributor_id'                => $service_log->distributor_id,
                 'created_at'                    => Carbon::now(),
                 'updated_at'                    => Carbon::now(),
             ]);
-
         }
 
         return response()->json([
@@ -525,7 +526,7 @@ class RetailerController extends Controller
     {
         $user = Retailer::firstWhere('slug', $slug);
         if ($user == null) {
-            return redirect(route('retailers'))->with('error', 'Retailer Not Found!!');
+            return to_route('retailers')->with('error', 'Retailer Not Found!!');
         }
 
         if ($request->ajax()) {

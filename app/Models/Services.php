@@ -22,8 +22,13 @@ class Services extends Model
         'default_d_commission',
         'default_md_commission',
         'default_r_commission',
+        'commission_slots',
         'default_assign',
         'is_feature',
         'btn_text',
+    ];
+
+    protected $casts = [
+        'commission_slots' => 'array',
     ];
 }
