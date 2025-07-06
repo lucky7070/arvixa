@@ -37,64 +37,6 @@
             </div>
 
             <div class="col-lg-6 mt-2">
-                <label class="form-label" for="purchase_rate">Purchase Rate <span class="required">*</span></label>
-                <input class="form-control" id="purchase_rate" placeholder="Purchase Rate" name="purchase_rate"
-                    type="number" step="0.01" value="{{ old('purchase_rate', $service['purchase_rate']) }}" />
-                @error('purchase_rate')
-                <span class="invalid-feedback" role="alert">
-                    <strong>{{ $message }}</strong>
-                </span>
-                @enderror
-            </div>
-            <div class="col-lg-6 mt-2">
-                <label class="form-label" for="sale_rate">Default Retailer Sale Rate <span
-                        class="required">*</span></label>
-                <input class="form-control" id="sale_rate" placeholder="Default Retailer Sale Rate" name="sale_rate"
-                    type="number" step="0.01" value="{{ old('sale_rate', $service['sale_rate']) }}" />
-                @error('sale_rate')
-                <span class="invalid-feedback" role="alert">
-                    <strong>{{ $message }}</strong>
-                </span>
-                @enderror
-            </div>
-            <div class="col-lg-6 mt-2">
-                <label class="form-label" for="default_d_commission">Default Distributor Commission <span
-                        class="required">*</span></label>
-                <input class="form-control" id="default_d_commission" placeholder="Default Distributor Commission"
-                    name="default_d_commission" type="number" step="0.01"
-                    value="{{ old('default_d_commission', $service['default_d_commission']) }}" />
-                @error('default_d_commission')
-                <span class="invalid-feedback" role="alert">
-                    <strong>{{ $message }}</strong>
-                </span>
-                @enderror
-            </div>
-            <div class="col-lg-6 mt-2">
-                <label class="form-label" for="default_md_commission">Default MainDistributor Commission <span
-                        class="required">*</span></label>
-                <input class="form-control" id="default_md_commission" placeholder="Default MainDistributor Commission"
-                    name="default_md_commission" type="number" step="0.01"
-                    value="{{ old('default_md_commission', $service['default_md_commission']) }}" />
-                @error('default_md_commission')
-                <span class="invalid-feedback" role="alert">
-                    <strong>{{ $message }}</strong>
-                </span>
-                @enderror
-            </div>
-            <div class="col-lg-6 mt-2">
-                <label class="form-label" for="default_r_commission">Default Retailer Commission <span
-                        class="required">*</span></label>
-                <input class="form-control" id="default_r_commission" placeholder="Default Retailer Commission"
-                    name="default_r_commission" type="number" step="0.01"
-                    value="{{ old('default_r_commission', $service['default_r_commission']) }}" />
-                @error('default_r_commission')
-                <span class="invalid-feedback" role="alert">
-                    <strong>{{ $message }}</strong>
-                </span>
-                @enderror
-            </div>
-
-            <div class="col-lg-6 mt-2">
                 <label class="form-label" for="default_assign">Default Assign to Retailer</label>
                 <select name="default_assign" class="form-select" id="default_assign">
                     <option value="1" {{ (old('default_assign',$service['default_assign'])==1) ? 'selected' : '' }}> Yes
@@ -187,14 +129,12 @@
         </form>
     </div>
 </div>
-
 @endsection
 
 @section('js')
 <script src="{{ asset('assets/plugins/summernote-0.8.18-dist/summernote.min.js') }}"></script>
 <script type="text/javascript">
-
-    $(document).ready(function () {
+    $(document).ready(function() {
         $('#description').summernote({
             toolbar: [
                 ['style', ['style']],
@@ -210,7 +150,7 @@
 
         let buttons = $('.note-editor button[data-toggle="dropdown"]');
         buttons.each((key, value) => {
-            $(value).on('click', function (e) {
+            $(value).on('click', function(e) {
                 $(this).attr('data-bs-toggle', 'dropdown')
 
             })
@@ -223,26 +163,6 @@
                     required: true,
                     minlength: 2,
                     maxlength: 100
-                },
-                purchase_rate: {
-                    required: true,
-                    min: 0.01
-                },
-                sale_rate: {
-                    required: true,
-                    min: 0.01
-                },
-                default_d_commission: {
-                    required: true,
-                    min: 0.01
-                },
-                default_md_commission: {
-                    required: true,
-                    min: 0.01
-                },
-                default_r_commission: {
-                    required: true,
-                    min: 0.01
                 },
                 description: {
                     required: true,
@@ -261,21 +181,6 @@
                 name: {
                     required: "Please enter name",
                 },
-                purchase_rate: {
-                    required: "Please enter purchase rate",
-                },
-                sale_rate: {
-                    required: "Please enter sale rate",
-                },
-                default_d_commission: {
-                    required: "Please enter default Distributor commission",
-                },
-                default_md_commission: {
-                    required: "Please enter default MainDistributor commission",
-                },
-                default_r_commission: {
-                    required: "Please enter default Retailer commission",
-                },
                 description: {
                     required: "Please enter Description",
                 },
@@ -286,22 +191,7 @@
                     extension: "Supported Format Only : jpg, jpeg, png"
                 }
             },
-            submitHandler: function (form, event) {
-                event.preventDefault();
-                const data = new FormData(form);
-                const objData = {};
-                data.forEach((value, key) => (objData[key] = parseFloat(value)));
-                var { purchase_rate, sale_rate, default_d_commission, default_md_commission } = objData
-                if (sale_rate > (purchase_rate + default_d_commission + default_md_commission)) {
-                    form.submit()
-                } else {
-                    toastr.error("Sale Rate can't be less then sum of 'Distributor commission', 'MainDistributor commission', 'Retailer Commission' and 'Purchase Rate'.");
-                    return false;
-                }
-            }
         });
-
     })
-
 </script>
 @endsection

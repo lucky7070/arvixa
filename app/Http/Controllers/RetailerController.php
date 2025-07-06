@@ -265,6 +265,7 @@ class RetailerController extends Controller
                 'services_logs.sale_rate as sale_rate_unique',
                 'services_logs.id as services_log_id',
                 'services_logs.purchase_rate',
+                'services_logs.commission_slots',
             );
 
             $query->leftJoin('services_logs', function ($join) use ($user) {
@@ -300,6 +301,12 @@ class RetailerController extends Controller
                     if (empty($row['assign_date'])) {
                         return "";
                     } else {
+                        if (in_array($row->id, config('constant.commission-slab-services', []))) {
+                            $row->openSlots = true;
+                        } else {
+                            $row->openSlots = false;
+                        }
+
                         return '<button data-all="' . htmlentities(json_encode($row)) . '" class="btn btn-sm btn-outline-secondary py-1 edit">
                             <i class="fa fa-edit"></i>
                         </button>';
@@ -440,7 +447,6 @@ class RetailerController extends Controller
 
     public function services_commission_update(Request $request)
     {
-
         $service_log = ServicesLog::where('id', $request->id)
             ->where('status', 1)
             ->where('user_type', 4)
@@ -454,42 +460,85 @@ class RetailerController extends Controller
                 "data"      => ""
             ]);
 
-
-        $validator = Validator::make($request->all(), [
-            'sale_rate'                     => 'required|numeric',
-            'distributor_commission'        => 'required|numeric',
-            'main_distributor_commission'   => 'required|numeric',
-            'retailer_commission'           => 'required|numeric',
-        ]);
-
-        $err = array();
-        foreach ($validator->errors()->toArray() as $key => $value) {
-            $err[$key] = $value[0];
-        }
-
-        if ($validator->fails()) {
+        $service = Services::find($service_log->service_id);
+        if ($service == null) {
             return response()->json([
                 'status'    => false,
-                'message'   => "Invalid Input values.",
-                "data"      => $err
-            ]);
-        }
-
-        if (floatval($request->sale_rate) < (floatval($service_log->purchase_rate) + floatval($request->main_distributor_commission) + floatval($request->distributor_commission))) {
-            return response()->json([
-                'status'    => false,
-                'message'   => "Sale Rate can't be less then sum of 'Distributor commission', 'MainDistributor commission' and 'Purchase Rate'.",
+                'message'   => "Service Not Found..!!",
                 "data"      => ""
             ]);
         }
 
-        if (
-            $service_log['sale_rate']                   != $request->sale_rate              ||
-            $service_log['distributor_commission']      != $request->distributor_commission ||
-            $service_log['retailer_commission']         != $request->retailer_commission    ||
-            $service_log['commission_slots']            != $request->commission_slots       ||
-            $service_log['main_distributor_commission'] != $request->main_distributor_commission
-        ) {
+        if (in_array($service->id, config('constant.commission-slab-services', []))) {
+            $validator = Validator::make($request->all(), [
+                'commission_slots.*.start'                          => ['required', 'numeric', 'min:1', 'max:10000000'],
+                'commission_slots.*.end'                            => ['required', 'numeric', 'min:1', 'max:10000000'],
+                'commission_slots.*.commission'                     => ['required', 'numeric', 'min:0', 'max:100'],
+                'commission_slots.*.commission_distributor'         => ['required', 'numeric', 'min:0', 'max:100'],
+                'commission_slots.*.commission_main_distributor'    => ['required', 'numeric', 'min:0', 'max:100'],
+                'commission_slots.*.total_commission'               => ['required', 'numeric', 'min:0', 'max:100'],
+            ]);
+
+            $validator->after(function ($validator) use ($request) {
+                foreach ($request->commission_slots as $index => $slot) {
+                    $sum = $slot['commission'] + $slot['commission_distributor'] + $slot['commission_main_distributor'];
+
+                    // Option 1: Validate against fixed 100% limit
+                    if ($sum > 100) {
+                        $validator->errors()->add(
+                            "commission_slots.$index.total_commission",
+                            "The sum of all commissions (currently {$sum}%) must not exceed 100%"
+                        );
+                    }
+
+                    // Option 2: Validate against total_commission value
+                    if (abs($sum - $slot['total_commission']) > 0.01) {
+                        $validator->errors()->add(
+                            "commission_slots.$index.total_commission",
+                            "The sum of individual commissions (currently {$sum}%) exceeds the total commission value ({$slot['total_commission']}%)"
+                        );
+                    }
+                }
+            });
+
+            if ($validator->fails()) {
+
+                $err = array();
+                foreach ($validator->errors()->toArray() as $key => $value) {
+                    $err[$key] = $value[0];
+                }
+
+                return response()->json([
+                    'status'    => false,
+                    'message'   => "Invalid Input values.",
+                    "data"      => $err
+                ]);
+            }
+
+            $isSame = true;
+            $validated = $validator->validate();
+            foreach (config('constant.bill-slab', []) as $key => $value) {
+                if (@$validated['commission_slots'][$key]['start']  != $value['start']  || @$validated['commission_slots'][$key]['end']  != $value['end']) {
+                    $isSame = false;
+                    break;
+                }
+            }
+
+            if (!$isSame) return response()->json([
+                'status'    => false,
+                'message'   => "Invalid Input values.",
+                "data"      => []
+            ]);
+
+            if ($validated['commission_slots'] == $service->commission_slots) {
+                return response()->json([
+                    'status'    => false,
+                    'message'   => "No changes..!!",
+                    "data"      => []
+                ]);
+            }
+
+
             ServicesLog::where('id', $request->id)->update([
                 'status'        => 0,
                 'decline_date'  => Carbon::now()
@@ -503,23 +552,89 @@ class RetailerController extends Controller
                 'assign_date'                   => Carbon::now(),
                 'decline_date'                  => null,
                 'purchase_rate'                 => $service_log->purchase_rate,
-                'sale_rate'                     => $request->sale_rate,
-                'main_distributor_commission'   => $request->main_distributor_commission,
-                'distributor_commission'        => $request->distributor_commission,
-                'retailer_commission'           => $request->retailer_commission,
-                'commission_slots'              => $request->commission_slots,
+                'sale_rate'                     => $service_log->sale_rate,
+                'main_distributor_commission'   => $service_log->main_distributor_commission,
+                'distributor_commission'        => $service_log->distributor_commission,
+                'retailer_commission'           => $service_log->retailer_commission,
+                'commission_slots'              => $validated['commission_slots'],
                 'main_distributor_id'           => $service_log->main_distributor_id,
                 'distributor_id'                => $service_log->distributor_id,
                 'created_at'                    => Carbon::now(),
                 'updated_at'                    => Carbon::now(),
             ]);
-        }
 
-        return response()->json([
-            'status'    => true,
-            'message'   => "Commission Updated.",
-            "data"      => ''
-        ]);
+            return response()->json([
+                'status'    => true,
+                'message'   => "Commission Updated.",
+                "data"      => ''
+            ]);
+        } else {
+            $validator = Validator::make($request->all(), [
+                'sale_rate'                     => 'required|numeric|min:0|max:100000000',
+                'distributor_commission'        => 'required|numeric|min:0|max:100000000',
+                'main_distributor_commission'   => 'required|numeric|min:0|max:100000000',
+                'retailer_commission'           => 'required|numeric|min:0|max:100000000',
+            ]);
+
+            $err = array();
+            foreach ($validator->errors()->toArray() as $key => $value) {
+                $err[$key] = $value[0];
+            }
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'status'    => false,
+                    'message'   => "Invalid Input values.",
+                    "data"      => $err
+                ]);
+            }
+
+            if (floatval($request->sale_rate) < (floatval($service_log->purchase_rate) + floatval($request->main_distributor_commission) + floatval($request->distributor_commission))) {
+                return response()->json([
+                    'status'    => false,
+                    'message'   => "Sale Rate can't be less then sum of 'Distributor commission', 'MainDistributor commission' and 'Purchase Rate'.",
+                    "data"      => ""
+                ]);
+            }
+
+            if (
+                $service_log['sale_rate']                   != $request->sale_rate              ||
+                $service_log['distributor_commission']      != $request->distributor_commission ||
+                $service_log['retailer_commission']         != $request->retailer_commission    ||
+                $service_log['commission_slots']            != $request->commission_slots       ||
+                $service_log['main_distributor_commission'] != $request->main_distributor_commission
+            ) {
+                ServicesLog::where('id', $request->id)->update([
+                    'status'        => 0,
+                    'decline_date'  => Carbon::now()
+                ]);
+
+                $service = ServicesLog::create([
+                    'user_id'                       => $service_log->user_id,
+                    'service_id'                    => $service_log->service_id,
+                    'user_type'                     => $service_log->user_type,
+                    'status'                        => 1,
+                    'assign_date'                   => Carbon::now(),
+                    'decline_date'                  => null,
+                    'purchase_rate'                 => $service_log->purchase_rate,
+                    'sale_rate'                     => $request->sale_rate,
+                    'main_distributor_commission'   => $request->main_distributor_commission,
+                    'distributor_commission'        => $request->distributor_commission,
+                    'retailer_commission'           => $request->retailer_commission,
+                    'commission_slots'              => $request->commission_slots,
+                    'main_distributor_id'           => $service_log->main_distributor_id,
+                    'distributor_id'                => $service_log->distributor_id,
+                    'created_at'                    => Carbon::now(),
+                    'updated_at'                    => Carbon::now(),
+                ]);
+            }
+
+            return response()->json([
+                'status'    => true,
+                'message'   => "Commission Updated.",
+                "data"      => ''
+            ]);
+        }
     }
 
     public function customers_list(Request $request, $slug)

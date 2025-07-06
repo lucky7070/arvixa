@@ -63,10 +63,6 @@
                             @csrf
                         </div>
                         <div class="col-md-3 mb-3">
-                            <label for="bill_no">Bill Number</label>
-                            <input type="text" class="form-control text-dark bill-no" name="bill_no" readonly>
-                        </div>
-                        <div class="col-md-3 mb-3">
                             <label for="bill_amount">Pending Bill Amount</label>
                             <input type="text" class="form-control text-dark bill-amount" name="bill_amount" readonly>
                         </div>
@@ -97,7 +93,6 @@
                                 <th>Transaction Id</th>
                                 <th>Consumer Name</th>
                                 <th>Consumer No</th>
-                                <th>Bill No</th>
                                 <th>Payment Date</th>
                                 <th>Bill Amount</th>
                                 <th>Commission</th>
@@ -114,11 +109,10 @@
                                 </td>
                                 <td><b>{{ $row->consumer_name }}</b></td>
                                 <td>{{ $row->consumer_no }}</td>
-                                <td>{{ $row->bill_no ?? '--' }}</td>
                                 <td>{{ $row->created_at->format('d F, Y h:i A') }}</td>
-                                <td><b class="text-primary">₹ {{ $row->bill_amount }}.00</b></td>
-                                <td><b class="text-success">₹ 0.{{ $row->commission }}</b></td>
-                                <td><b class="text-danger">₹ 0.{{ $row->tds }}</b></td>
+                                <td><b class="text-primary">₹ {{ $row->bill_amount }}</b></td>
+                                <td><b class="text-success">₹ {{ $row->commission }}</b></td>
+                                <td><b class="text-danger">₹ {{ $row->tds }}</b></td>
                                 <td>{{ $row->provider_name }}</td>
                                 <td>
                                     <button class="btn btn-sm btn-primary view" data-all='{!! htmlspecialchars(json_encode($row)) !!}'>View</button>

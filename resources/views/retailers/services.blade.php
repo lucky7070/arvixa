@@ -3,7 +3,7 @@
 @section('css')
 <link rel="stylesheet" href="{{ asset('assets/css/light/forms/switches.css') }}">
 <style>
-    .table thead tr th {
+    .table.colored thead tr th {
         border: 1px solid #ebedf2 !important;
         background: #eaeaec !important;
         padding: 10px 21px 10px 21px;
@@ -34,7 +34,7 @@
     </div>
     <div class="card-body">
         <div class="table-responsive scrollbar">
-            <table class="table custom-table table-striped fs--1 mb-0 table-datatable" style="width:100%">
+            <table class="table colored custom-table table-striped fs--1 mb-0 table-datatable" style="width:100%">
                 <thead class="bg-200 text-900">
                     <tr>
                         <th scope="col" class="fw-bold"> Select</th>
@@ -67,7 +67,7 @@
                         </div>
                         <div class="mb-2">
                             <label class="col-form-label" for="sale_rate">Sale Rate for Retailer :</label>
-                            <input class="form-control" name="sale_rate" id="sale_rate" type="number" step="0.01" />
+                            <input class="form-control" name="sale_rate" id="sale_rate" type="number" step="0" />
                             <input class="form-control" name="id" id="id" type="hidden" />
                         </div>
                         <div class="mb-2">
@@ -131,11 +131,52 @@
         </div>
     </div>
 </div>
+
+<div class="modal fade" id="editModal2" tabindex="-1" City="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content position-relative">
+
+            <div class="modal-header">
+                <h5 class="modal-title" id="tabsModalLabel">Edit Commission & Sale Price</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true" class="d-none">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body p-0">
+                <form id="editForm2">
+                    <div class="table-responsive" id="commission_slots">
+                        <table class="table table-bordered mb-0">
+                            <thead>
+                                <tr>
+                                    <th class="bg-white" scope="col" rowspan="2">Start Amount</th>
+                                    <th class="bg-white" scope="col" rowspan="2">End Amount</th>
+                                    <th class="bg-white" colspan="4" class="text-center">Commission Precent</th>
+                                </tr>
+                                <tr>
+                                    <th class="bg-white" scope="col">Main Distributor</th>
+                                    <th class="bg-white" scope="col">Distributor </th>
+                                    <th class="bg-white" scope="col">Retailer</th>
+                                    <th class="bg-white" scope="col">Total</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-light-dark" type="reset" data-bs-dismiss="modal">Discard</button>
+                        <input class="form-control" name="id" id="id" type="hidden" />
+                        <button class="btn btn-primary" type="submit">Submit</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
 @endsection
 
 @section('js')
 <script type="text/javascript">
-    $(function () {
+    $(function() {
         var table = $('.table-datatable').DataTable({
             searching: false,
             paging: false,
@@ -146,34 +187,36 @@
                 [1, 'desc']
             ],
             columns: [{
-                data: 'check',
-                name: 'check',
-                orderable: false,
-                searchable: false
-            },
-            {
-                data: 'name',
-                name: 'name',
-                orderable: false,
-                searchable: false
-            },
-            {
-                data: 'action',
-                name: 'action',
-                orderable: false,
-                searchable: false
-            },
+                    data: 'check',
+                    name: 'check',
+                    orderable: false,
+                    searchable: false
+                },
+                {
+                    data: 'name',
+                    name: 'name',
+                    orderable: false,
+                    searchable: false
+                },
+                {
+                    data: 'action',
+                    name: 'action',
+                    orderable: false,
+                    searchable: false
+                },
             ]
         });
 
-        $(document).on('change', '.switch-input', function () {
+        $(document).on('change', '.switch-input', function() {
             var service_id = $(this).data('service-id');
             var selector = this;
             $.ajax({
                 url: "{{ route('retailers.services', [ 'slug' => $user['slug'] ]) }}",
-                data: { service_id },
+                data: {
+                    service_id
+                },
                 type: 'POST',
-                success: function (data) {
+                success: function(data) {
                     if (data.status == true) {
                         table.draw();
                         toastr.success(data.message);
@@ -184,19 +227,25 @@
             });
         })
 
-        $(document).on('click', ".edit", function () {
+        $(document).on('click', ".edit", function() {
             var data = $(this).data('all')
-            $('[name="id"]').val(data.services_log_id)
-            document.forms['editForm']['purchase_rate'].value = data.purchase_rate;
-            document.forms['editForm']['sale_rate'].value = data.sale_rate_unique;
-            document.forms['editForm']['main_distributor_commission'].value = data.main_distributor_commission;
-            document.forms['editForm']['distributor_commission'].value = data.distributor_commission;
-            document.forms['editForm']['retailer_commission'].value = data.retailer_commission;
+            if (data.openSlots) {
+                if (data?.commission_slots && Array.isArray(data.commission_slots) && data.commission_slots.length > 0) {
+                    reinit(data.commission_slots, data.services_log_id);
+                }
+            } else {
+                $('[name="id"]').val(data.services_log_id)
+                document.forms['editForm']['purchase_rate'].value = data.purchase_rate;
+                document.forms['editForm']['sale_rate'].value = data.sale_rate_unique;
+                document.forms['editForm']['main_distributor_commission'].value = data.main_distributor_commission;
+                document.forms['editForm']['distributor_commission'].value = data.distributor_commission;
+                document.forms['editForm']['retailer_commission'].value = data.retailer_commission;
 
-            $('#default_md_commission b').text(data.default_md_commission)
-            $('#default_d_commission b').text(data.default_d_commission)
-            $('#default_r_commission b').text(data.default_r_commission)
-            $('#editModal').modal('show');
+                $('#default_md_commission b').text(data.default_md_commission)
+                $('#default_d_commission b').text(data.default_d_commission)
+                $('#default_r_commission b').text(data.default_r_commission)
+                $('#editModal').modal('show');
+            }
         })
 
         $("#editForm").validate({
@@ -228,18 +277,23 @@
                     required: "Please enter default MainDistributor commission",
                 },
             },
-            submitHandler: function (form) {
+            submitHandler: function(form) {
                 var formData = new FormData(form);
                 $("#overlay").show();
                 const formDataObj = {};
                 formData.forEach((value, key) => (formDataObj[key] = parseFloat(value)));
-                var { sale_rate, purchase_rate, main_distributor_commission, distributor_commission } = formDataObj
+                var {
+                    sale_rate,
+                    purchase_rate,
+                    main_distributor_commission,
+                    distributor_commission
+                } = formDataObj
                 if (sale_rate > (purchase_rate + main_distributor_commission + distributor_commission)) {
                     $.ajax({
                         url: "{{ route('retailers.commission.services') }}",
                         data: formDataObj,
                         type: 'PUT',
-                        success: function (data) {
+                        success: function(data) {
                             if (data.status) {
                                 toastr.success(data?.message);
                                 $('#editModal').modal('hide');
@@ -251,13 +305,105 @@
                             }
                         }
                     });
-                }
-                else {
+                } else {
                     toastr.error("Sale Rate can't be less then sum of 'Distributor commission', 'MainDistributor commission' and 'Purchase Rate'.")
                 }
             }
         });
-    });
 
+        $(document).on('input', '#editForm2 tbody .commission_main_distributor, #editForm2 tbody .commission_distributor, #editForm2 tbody .commission', function(e) {
+            const parent = $(this).parents().eq(1);
+            const commission_main_distributor = parseFloat(parent.find('.commission_main_distributor').val() || 0);
+            const commission_distributor = parseFloat(parent.find('.commission_distributor').val() || 0);
+            const commission = parseFloat(parent.find('.commission').val() || 0);
+            parent.find('.total_commission').val(commission_main_distributor + commission_distributor + commission)
+        });
+
+        $(document).on('input', '#editForm tbody .commission_main_distributor', function() {
+            console.log($(this));
+
+        })
+
+        function reinit(commission_slots, services_log_id) {
+            let html = '';
+            commission_slots.forEach((row, i) => {
+                html += `<tr>
+                    <td>
+                        <input type="number" name="commission_slots[${i}][start]" class="form-control text-dark" value="${row.start}" placeholder="From" min="1" required="" readonly="">
+                    </td>
+                    <td>
+                        <input type="number" name="commission_slots[${i}][end]" class="form-control text-dark" value="${row.end}" placeholder="To" min="1" required="" readonly="">
+                    </td>
+                    <td>
+                        <input type="number" name="commission_slots[${i}][commission_main_distributor]" class="form-control commission_main_distributor" placeholder="Commission" value="${row.commission_main_distributor}" step="0.01" min="0" max="100" required="">
+                    </td>
+                    <td>
+                        <input type="number" name="commission_slots[${i}][commission_distributor]" class="form-control commission_distributor" placeholder="Commission" value="${row.commission_distributor}" step="0.01" min="0" max="100" required="">
+                    </td>
+                    <td>
+                        <input type="number" name="commission_slots[${i}][commission]" class="form-control commission" placeholder="Commission" value="${row.commission}" step="0.01" min="0" max="100" required="">
+                    </td>
+                    <td>
+                        <input type="number" name="commission_slots[${i}][total_commission]" class="form-control text-dark total_commission" placeholder="Commission" value="${row.total_commission}" step="0.01" min="0" max="100" required="" readonly="">
+                    </td>
+                </tr>`
+            });
+
+            $('[name="id"]').val(services_log_id)
+            $('#commission_slots tbody').html(html);
+
+            $("#editForm2").validate({
+                ignore: [],
+                errorClass: "text-danger fs--3",
+                errorElement: "small",
+                errorPlacement: function(error, element) {
+                    if (element.parent().hasClass('input-group')) {
+                        error.insertAfter(element.parent());
+                    } else {
+                        error.insertAfter(element);
+                    }
+                },
+                submitHandler: function(form) {
+                    var formData = new FormData(form);
+                    formData.append('_method', 'PUT')
+                    $("#overlay").show();
+                    $.ajax({
+                        url: "{{ route('retailers.commission.services') }}",
+                        data: formData,
+                        contentType: false,
+                        processData: false,
+                        type: 'POST',
+                        success: function(data) {
+                            if (data.status) {
+                                toastr.success(data?.message);
+                                $('#editModal2').modal('hide');
+                                table.draw();
+                                $("#overlay").hide();
+                            } else {
+                                toastr.error(data?.message);
+                                $("#overlay").hide();
+                                console.log(data?.data);
+                            }
+                        }
+                    });
+                }
+            });
+
+            $('#commission_slots tbody tr').each(function(index) {
+                const rules = {
+                    required: true,
+                    min: 0,
+                    max: 100,
+                    step: 0.01
+                }
+
+                $('[name="commission_slots[' + index + '][commission_main_distributor]"]').rules('add', rules);
+                $('[name="commission_slots[' + index + '][commission_distributor]"]').rules('add', rules);
+                $('[name="commission_slots[' + index + '][commission]"]').rules('add', rules);
+            });
+
+            $('#editModal2').modal('show');
+        }
+    });
 </script>
 @endsection

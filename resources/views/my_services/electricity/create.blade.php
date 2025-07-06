@@ -122,9 +122,9 @@
                                 <td>{{ $row->consumer_no }}</td>
                                 <td>{{ $row->bill_no ?? '--' }}</td>
                                 <td>{{ $row->created_at->format('d F, Y h:i A') }}</td>
-                                <td><b class="text-primary">₹ {{ $row->bill_amount }}.00</b></td>
-                                <td><b class="text-success">₹ 0.{{ $row->commission }}</b></td>
-                                <td><b class="text-danger">₹ 0.{{ $row->tds }}</b></td>
+                                <td><b class="text-primary">₹ {{ $row->bill_amount }}</b></td>
+                                <td><b class="text-success">₹ {{ $row->commission }}</b></td>
+                                <td><b class="text-danger">₹ {{ $row->tds }}</b></td>
                                 <td>{{ $row->provider_name }}</td>
                                 <td>{{ $row->bu_code ?? '--' }}</td>
                                 <td>

@@ -438,7 +438,7 @@ class LedgerController extends Controller
             $balanceChange = 0;
             // Retailer Bill Amount
             if ($bill->bill_amount && $bill->bill_amount > 0) {
-                $balanceChange -= $bill->bill_amount;
+                $balanceChange += $bill->bill_amount;
                 Ledger::create([
                     'voucher_no'                => Str::uuid(),
                     'user_id'                   => $serviceLog->user_id,
@@ -457,7 +457,7 @@ class LedgerController extends Controller
 
             // Retailer Commission
             if ($bill->commission && $bill->commission > 0) {
-                $balanceChange += $bill->commission;
+                $balanceChange -= $bill->commission;
                 Ledger::create([
                     'voucher_no'                => Str::uuid(),
                     'user_id'                   => $serviceLog->user_id,
@@ -476,7 +476,7 @@ class LedgerController extends Controller
 
             // Retailer TDS
             if ($bill->tds && $bill->tds > 0) {
-                $balanceChange -= $bill->tds;
+                $balanceChange += $bill->tds;
                 Ledger::create([
                     'voucher_no'                => Str::uuid(),
                     'user_id'                   => $serviceLog->user_id,

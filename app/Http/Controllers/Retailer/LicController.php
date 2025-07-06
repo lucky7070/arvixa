@@ -88,6 +88,38 @@ class LicController extends Controller
             ]);
         } else {
 
+            $provider = DB::table('rproviders')->where('id', $request->operator)->first();
+            if (!$provider) {
+                return response()->json(['error' => 'Invalid provider selected.'], 400);
+            }
+
+            $record = BillPay::getGasBill($request->consumer_no, $provider->code1);
+            if (!empty($record['CustomerName'])) {
+                $fetch =   FetchBill::create([
+                    'transaction_id'    => (string) Str::uuid(),
+                    'service_id'        => $this->service_id,
+                    'user_id'           => $this->user_id,
+                    'board_id'          => $request->operator,
+                    'consumer_no'       => $request->consumer_no,
+                    'consumer_name'     => @$record['userName'],
+                    'bill_no'           => '',
+                    'bill_amount'       => @$record['billnetamount'] ?? @$record['billAmount'] ?? '',
+                    'due_date'          => Carbon::parse($record['dueDate'])->format('Y-m-d')
+                ]);
+
+                return response()->json([
+                    'status'    => true,
+                    'message'   => 'Bill details fetched successfully.',
+                    'data'      => $fetch
+                ]);
+            } else {
+                return response()->json([
+                    'status'    => false,
+                    'message'   => 'No bill amount pending.',
+                    'data'      => []
+                ]);
+            }
+
             $fetch =   FetchBill::create([
                 'transaction_id'    => (string) Str::uuid(),
                 'service_id'        => $this->service_id,
@@ -97,7 +129,7 @@ class LicController extends Controller
                 'consumer_name'     => '',
                 'bill_no'           => '',
                 'bill_amount'       => null,
-                'due_date'          => now()->format('Y-m-d'),
+                'due_date'          => null,
             ]);
 
             return response()->json([
@@ -111,11 +143,11 @@ class LicController extends Controller
     public function paymentSubmit(Request $request)
     {
         $request->validate([
-            'transaction_id'        => ['required', 'string', 'max:255'],
+            'transaction_id'        => ['required', 'string', 'max:100'],
+            'email'                 => ['required', 'string', 'min:3', 'max:100', 'email'],
             'consumer_name'         => ['required', 'string', 'min:3', 'max:100'],
-            'bill_no'               => ['required', 'string', 'min:3', 'max:100', 'email'],
             'bill_amount'           => ['required', 'numeric', 'min:1', 'max:9999999'],
-            'due_date'              => ['required', 'date'],
+            'due_date'              => ['required', 'date', 'before:today'],
         ]);
 
         $data = FetchBill::where('transaction_id', $request->get('transaction_id'))->where('user_id', $this->user_id)->where('service_id', $this->service_id)->first();
@@ -132,7 +164,7 @@ class LicController extends Controller
             return to_route('retailer.dashboard')->with('error', "Service Can't be used..!!");
 
         $balance = (float) $this->user->user_balance;
-        $amountDue = (float) $request->bill_amount;
+        $amountDue = (float) $data->bill_amount;
 
         if ($amountDue == 0)  return back()->with('error', "No bill amount pending..!!");
 
@@ -150,18 +182,18 @@ class LicController extends Controller
         $tds_main_distributor = 0;
 
         if (!empty($slot['commission']) && $slot['commission'] > 0) {
-            $commission = round((float) $amountDue * $slot['commission'] / 100);
-            $tds_amount = round($commission * (float) $request->site_settings['tds_percent'] / 100);
+            $commission = round((float) $amountDue * $slot['commission'] / 100, 4);
+            $tds_amount = round($commission * (float) $request->site_settings['tds_percent'] / 100, 4);
         }
 
         if ($serviceLog->distributor_id && !empty($slot['commission_distributor']) && $slot['commission_distributor'] > 0) {
-            $commission_distributor = round((float) $amountDue * $slot['commission_distributor'] / 100);
-            $tds_distributor = round($commission_distributor * (float) $request->site_settings['tds_percent'] / 100);
+            $commission_distributor = round((float) $amountDue * $slot['commission_distributor'] / 100, 4);
+            $tds_distributor = round($commission_distributor * (float) $request->site_settings['tds_percent'] / 100, 4);
         }
 
         if ($serviceLog->main_distributor_id && !empty($slot['commission_main_distributor']) && $slot['commission_main_distributor'] > 0) {
-            $commission_main_distributor = round((float) $amountDue * $slot['commission_main_distributor'] / 100);
-            $tds_main_distributor = round($commission_main_distributor * (float) $request->site_settings['tds_percent'] / 100);
+            $commission_main_distributor = round((float) $amountDue * $slot['commission_main_distributor'] / 100, 4);
+            $tds_main_distributor = round($commission_main_distributor * (float) $request->site_settings['tds_percent'] / 100, 4);
         }
 
         $bill =   ElectricityBill::create([
@@ -169,13 +201,14 @@ class LicController extends Controller
             'user_id'                       => $data->user_id,
             'board_id'                      => $data->board_id,
             'consumer_no'                   => $data->consumer_no,
-            'consumer_name'                 => $request->consumer_name,
-            'bill_no'                       => $request->bill_no,
+            'consumer_name'                 => $data->consumer_name,
+            'bill_no'                       => $request->email,
             'bill_amount'                   => $amountDue,
             'bill_type'                     => 'lic',
-            'due_date'                      => $request->due_date,
+            'due_date'                      => $data->due_date,
             'commission'                    => $commission,
             'tds'                           => $tds_amount,
+            'status'                        => 0,
             'commission_distributor'        => $commission_distributor,
             'tds_distributor'               => $tds_distributor,
             'commission_main_distributor'   => $commission_main_distributor,
@@ -196,36 +229,45 @@ class LicController extends Controller
         $service = Services::find($this->service_id);
         if ($request->ajax()) {
 
-            $data = ElectricityBill::select('electricity_bills.id', 'electricity_bills.transaction_id', 'electricity_bills.consumer_name', 'electricity_bills.consumer_no', 'electricity_bills.bill_no', 'electricity_bills.created_at', 'electricity_bills.due_date', 'electricity_bills.bill_amount', 'electricity_bills.commission', 'electricity_bills.tds', 'rproviders.name as provider_name')
+            $data = ElectricityBill::select('electricity_bills.id', 'electricity_bills.transaction_id', 'electricity_bills.consumer_name', 'electricity_bills.consumer_no', 'electricity_bills.bill_no', 'due_date', 'electricity_bills.created_at', 'electricity_bills.bill_amount', 'electricity_bills.commission', 'electricity_bills.tds', 'electricity_bills.bu_code', 'electricity_bills.status', 'electricity_bills.remark', 'rproviders.name as provider_name')
                 ->where('electricity_bills.bill_type', 'lic')
                 ->where('electricity_bills.user_id', $this->user_id)
                 ->join('rproviders', 'rproviders.id', 'electricity_bills.board_id');
 
             return Datatables::of($data)->addIndexColumn()
                 ->editColumn('transaction_id', function ($row) {
-                    $row->receipt = route('retailer.lic-download.receipt', $row->id);
-                    return '<b class="text-primary view" data-all="' . htmlspecialchars(json_encode($row))  . '">' . $row['transaction_id'] . '</b>';
+                    return '<div class="fw-bold">' . $row['transaction_id'] . '</div><small class="text-info">' . $row['created_at']->format('d M, Y') . '</small>';
                 })
-                ->editColumn('created_at', function ($row) {
-                    return $row['created_at'] ? $row['created_at']->format('d M, Y') : '';
+                ->addColumn('provider_name', function ($row) {
+                    return '<div class="td-table small fw-bold">' . trim($row->provider_name) . '</div>';
                 })
-                ->addColumn('consumer_name', function ($row) {
-                    return '<b>' . trim($row->consumer_name) . '</b>';
+                ->editColumn('bu_code', function ($row) {
+                    return  $row['bu_code'] ?? '--';
                 })
-                ->editColumn('bill_amount', function ($row) {
-                    return  '<b class="text-primary">₹ ' . $row['bill_amount'] . '</b>';
+                ->editColumn('consumer_no', function ($row) {
+                    return '<div class="fw-bold">KNo : ' . $row['consumer_no'] . '</div><div  class="text-success fw-bold small">Due Date : ' . date('d F, Y', strtotime($row['due_date'])) . '</div><div  class="text-primary fw-bold small">Bill Amount : ₹' . $row['bill_amount'] . '</div>';
                 })
                 ->editColumn('commission', function ($row) {
-                    return  '<b class="text-success">₹ ' . $row['commission'] . '</b>';
+                    return  '<div class="text-success small fw-semibold">Commission : ₹ ' . $row['commission'] . ' </div><div class="text-primary small fw-semibold">TDS : ₹ ' . $row['tds'] . ' </div>';
                 })
-                ->editColumn('tds', function ($row) {
-                    return  '<b class="text-danger">₹ ' . $row['tds'] . '</b>';
+                ->editColumn('status', function ($row) {
+                    $btn = '';
+                    if ($row['status'] == 2) {
+                        $btn .= '<span class="badge badge-light-danger">Cancelled</span>';
+                    } else if ($row['status'] == 1) {
+                        $btn .= '<span class="badge badge-light-success">Success</span>';
+                    } else {
+                        $btn .= '<span class="badge badge-light-primary">Pending</span>';
+                    }
+
+                    $btn .= '<p class="small"> Remark : ' . str($row['remark'] ?? 'N/A')->limit(20) . '</p>';
+                    return  $btn;
                 })
                 ->addColumn('action', function ($row) {
-                    $row->receipt = route('retailer.lic-download.receipt', $row->id);
+                    $row->receipt = route('retailer.water-download.receipt', $row->id);
                     return '<button class="btn btn-sm btn-primary view" data-all="' . htmlspecialchars(json_encode($row))  . '">View</button>';
                 })
-                ->rawColumns(['transaction_id', 'consumer_name', 'bill_amount', 'action', 'commission', 'tds'])
+                ->rawColumns(['transaction_id', 'provider_name', 'consumer_no', 'commission', 'status', 'action', 'retailer_name'])
                 ->make(true);
         }
         return view('my_services.lic.list', compact('service'));

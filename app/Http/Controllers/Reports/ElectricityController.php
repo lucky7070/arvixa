@@ -9,6 +9,8 @@ use Illuminate\Support\Carbon;
 use \Yajra\Datatables\Datatables;
 use App\Http\Controllers\Controller;
 use App\Models\ServiceUsesLog;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
 use PhpOffice\PhpSpreadsheet\Shared\Date;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
@@ -28,7 +30,7 @@ class ElectricityController extends Controller
     {
         if ($request->ajax()) {
 
-            $query = ElectricityBill::select('electricity_bills.id', 'electricity_bills.transaction_id', 'electricity_bills.consumer_name', 'electricity_bills.consumer_no', 'electricity_bills.bill_no', 'electricity_bills.created_at', 'electricity_bills.bill_amount', 'electricity_bills.commission', 'electricity_bills.tds', 'electricity_bills.bu_code', 'electricity_bills.status', 'rproviders.name as provider_name', 'retailers.name as retailer_name', 'retailers.userId as retailer_userId');
+            $query = ElectricityBill::select('electricity_bills.id', 'electricity_bills.transaction_id', 'electricity_bills.consumer_name', 'electricity_bills.consumer_no', 'electricity_bills.bill_no', 'due_date', 'electricity_bills.created_at', 'electricity_bills.bill_amount', 'electricity_bills.commission', 'electricity_bills.tds', 'electricity_bills.bu_code', 'electricity_bills.status', 'electricity_bills.remark', 'rproviders.name as provider_name', 'retailers.name as retailer_name', 'retailers.mobile as retailer_userId');
             $query->where('electricity_bills.bill_type', 'electricity');
             $query->join('retailers', 'retailers.id', 'electricity_bills.user_id');
             $query->join('rproviders', 'rproviders.id', 'electricity_bills.board_id');
@@ -44,55 +46,57 @@ class ElectricityController extends Controller
                 }
             }
 
-            if ($request->filled('is_refunded')) {
-                $query->where('electricity_bills.is_refunded', $request->get('is_refunded'));
-            }
+            if ($request->filled('status')) $query->where('electricity_bills.status', $request->get('status'));
+            if ($request->filled('provider')) $query->where('electricity_bills.board_id', $request->get('provider'));
 
             return Datatables::of($query)->addIndexColumn()
-                ->editColumn('retailer_name', function ($row) {
-                    return '<b>' . $row['retailer_name'] . '</b><br><b>' . $row['retailer_userId'] . '</b>';
-                })
                 ->editColumn('transaction_id', function ($row) {
-                    return '<b>' . $row['transaction_id'] . '</b>';
+                    return '<div class="fw-bold">' . $row['transaction_id'] . '</div><small class="text-info">' . $row['created_at']->format('d M, Y') . '</small>';
                 })
-                ->editColumn('created_at', function ($row) {
-                    return $row['created_at'] ? $row['created_at']->format('d M, Y') : '';
+                ->editColumn('retailer_name', function ($row) {
+                    return '<div class="fw-bold">' . $row['retailer_name'] . '</div><small  class="text-primary">' . $row['retailer_userId'] . '</small>';
                 })
-                ->addColumn('consumer_name', function ($row) {
-                    return '<b>' . trim($row->consumer_name) . '</b>';
+                ->addColumn('provider_name', function ($row) {
+                    return '<div class="td-table small fw-bold">' . trim($row->provider_name) . '</div>';
                 })
-                ->editColumn('bill_amount', function ($row) {
-                    return  '<div class="text-primary">₹ ' . $row['bill_amount'] . '</div><small class="text-success">₹ ' . $row['commission'] . ' </small> | <small class="text-primary">₹ ' . $row['tds'] . ' </small>';
+                ->editColumn('consumer_no', function ($row) {
+                    return '<div class="fw-bold">KNo : ' . $row['consumer_no'] . '</div><div  class="text-success fw-bold small">Due Date : ' . date('d F, Y', strtotime($row['due_date'])) . '</div><div  class="text-primary fw-bold small">Bill Amount : ₹' . $row['bill_amount'] . '</div>';
                 })
-                ->addColumn('action', function ($row) {
+                ->editColumn('commission', function ($row) {
+                    return  '<div class="text-success small fw-semibold">Commission : ₹ ' . $row['commission'] . ' </div><div class="text-primary small fw-semibold">TDS : ₹ ' . $row['tds'] . ' </div>';
+                })
+                ->editColumn('status', function ($row) {
                     $btn = '';
-                    if ($row['status'] == 1) {
-                        $btn .= '<span class="badge badge-light-success mb-2 me-4">Paid</span>';
-                    } else if ($row['status'] == 2) {
+                    if ($row['status'] == 2) {
                         $btn .= '<span class="badge badge-light-danger">Cancelled</span>';
-                        if ($row['is_refunded'] == 1)   $btn .= '<span class="badge badge-light-warning ms-1">Refunded</span>';
+                    } else if ($row['status'] == 1) {
+                        $btn .= '<span class="badge badge-light-success">Success</span>';
                     } else {
-                        $btn .= '<button class="btn btn-sm btn-outline-success update-status me-1" data-id="' . $row['id'] . '" data-type="1">Paid</button>';
-                        $btn .= '<button class="btn btn-sm btn-outline-danger update-status" data-id="' . $row['id'] . '" data-type="2">Cancel</button>';
+                        $btn .= '<span class="badge badge-light-primary">Pending</span>';
                     }
 
-                    return $btn;
+                    $btn .= '<p class="small"> Remark : ' . str($row['remark'] ?? 'N/A')->limit(20) . '</p>';
+                    return  $btn;
+                })
+                ->addColumn('action', function ($row) {
+                    return '<button id="btndefault" type="button" class="btn btn-outline-dark action" data-all="' . htmlspecialchars(json_encode($row))  . '">Action</button>';
                 })
                 ->editColumn('bu_code', function ($row) {
                     return  $row['bu_code'] ?? '--';
                 })
-                ->rawColumns(['transaction_id', 'consumer_name', 'bill_amount', 'action', 'retailer_name'])
+                ->rawColumns(['transaction_id', 'provider_name', 'consumer_no', 'commission', 'status', 'action', 'retailer_name'])
                 ->make(true);
         }
 
-        return view('reports.electricity-bill.index');
+        $providers = DB::table('rproviders')->where('sertype', 'electricity')->get();
+        return view('reports.electricity-bill.index', compact('providers'));
     }
 
     public function waterbill(Request $request)
     {
         if ($request->ajax()) {
 
-            $query = ElectricityBill::select('electricity_bills.id', 'electricity_bills.transaction_id', 'electricity_bills.consumer_name', 'electricity_bills.consumer_no', 'electricity_bills.bill_no', 'electricity_bills.created_at', 'electricity_bills.bill_amount', 'electricity_bills.commission', 'electricity_bills.tds', 'electricity_bills.status', 'rproviders.name as provider_name', 'retailers.name as retailer_name', 'retailers.userId as retailer_userId');
+            $query = ElectricityBill::select('electricity_bills.id', 'electricity_bills.transaction_id', 'electricity_bills.consumer_name', 'electricity_bills.consumer_no', 'electricity_bills.bill_no', 'due_date', 'electricity_bills.created_at', 'electricity_bills.bill_amount', 'electricity_bills.commission', 'electricity_bills.tds', 'electricity_bills.bu_code', 'electricity_bills.status', 'electricity_bills.remark', 'rproviders.name as provider_name', 'retailers.name as retailer_name', 'retailers.mobile as retailer_userId');
             $query->where('electricity_bills.bill_type', 'water');
             $query->join('retailers', 'retailers.id', 'electricity_bills.user_id');
             $query->join('rproviders', 'rproviders.id', 'electricity_bills.board_id');
@@ -108,52 +112,54 @@ class ElectricityController extends Controller
                 }
             }
 
-            if ($request->filled('is_refunded')) {
-                $query->where('electricity_bills.is_refunded', $request->get('is_refunded'));
-            }
-            // dd($query->get()->toArray());
+            if ($request->filled('status')) $query->where('electricity_bills.status', $request->get('status'));
+            if ($request->filled('provider')) $query->where('electricity_bills.board_id', $request->get('provider'));
+
             return Datatables::of($query)->addIndexColumn()
-                ->editColumn('retailer_name', function ($row) {
-                    return '<b>' . $row['retailer_name'] . '</b><br><b>' . $row['retailer_userId'] . '</b>';
-                })
                 ->editColumn('transaction_id', function ($row) {
-                    return '<b>' . $row['transaction_id'] . '</b>';
+                    return '<div class="fw-bold">' . $row['transaction_id'] . '</div><small class="text-info">' . $row['created_at']->format('d M, Y') . '</small>';
                 })
-                ->editColumn('created_at', function ($row) {
-                    return $row['created_at'] ? $row['created_at']->format('d M, Y') : '';
+                ->editColumn('retailer_name', function ($row) {
+                    return '<div class="fw-bold">' . $row['retailer_name'] . '</div><small  class="text-primary">' . $row['retailer_userId'] . '</small>';
                 })
-                ->addColumn('consumer_name', function ($row) {
-                    return '<div>' . trim($row->consumer_name) . '</div>';
+                ->addColumn('provider_name', function ($row) {
+                    return '<div class="td-table small fw-bold">' . trim($row->provider_name) . '</div>';
                 })
-                ->editColumn('bill_amount', function ($row) {
-                    return  '<div class="text-primary">₹ ' . $row['bill_amount'] . '</div><small class="text-success">₹ ' . $row['commission'] . ' </small> | <small class="text-primary">₹ ' . $row['tds'] . ' </small>';
+                ->editColumn('consumer_no', function ($row) {
+                    return '<div class="fw-bold">KNo : ' . $row['consumer_no'] . '</div><div  class="text-success fw-bold small">Due Date : ' . date('d F, Y', strtotime($row['due_date'])) . '</div><div  class="text-primary fw-bold small">Bill Amount : ₹' . $row['bill_amount'] . '</div>';
                 })
-                ->addColumn('action', function ($row) {
+                ->editColumn('commission', function ($row) {
+                    return  '<div class="text-success small fw-semibold">Commission : ₹ ' . $row['commission'] . ' </div><div class="text-primary small fw-semibold">TDS : ₹ ' . $row['tds'] . ' </div>';
+                })
+                ->editColumn('status', function ($row) {
                     $btn = '';
-                    if ($row['status'] == 1) {
-                        $btn .= '<span class="badge badge-light-success mb-2 me-4">Paid</span>';
-                    } else if ($row['status'] == 2) {
+                    if ($row['status'] == 2) {
                         $btn .= '<span class="badge badge-light-danger">Cancelled</span>';
-                        if ($row['is_refunded'] == 1)   $btn .= '<span class="badge badge-light-warning ms-1">Refunded</span>';
+                    } else if ($row['status'] == 1) {
+                        $btn .= '<span class="badge badge-light-success">Success</span>';
                     } else {
-                        $btn .= '<button class="btn btn-sm btn-outline-success update-status me-1" data-id="' . $row['id'] . '" data-type="1">Paid</button>';
-                        $btn .= '<button class="btn btn-sm btn-outline-danger update-status" data-id="' . $row['id'] . '" data-type="2">Cancel</button>';
+                        $btn .= '<span class="badge badge-light-primary">Pending</span>';
                     }
 
-                    return $btn;
+                    $btn .= '<p class="small"> Remark : ' . str($row['remark'] ?? 'N/A')->limit(20) . '</p>';
+                    return  $btn;
                 })
-                ->rawColumns(['transaction_id', 'consumer_name', 'bill_amount', 'action', 'retailer_name'])
+                ->addColumn('action', function ($row) {
+                    return '<button id="btndefault" type="button" class="btn btn-outline-dark action" data-all="' . htmlspecialchars(json_encode($row))  . '">Action</button>';
+                })
+                ->rawColumns(['transaction_id', 'provider_name', 'consumer_no', 'commission', 'status', 'action', 'retailer_name'])
                 ->make(true);
         }
-        $bills = [];
-        return view('reports.water-bill.index', compact('bills'));
+
+        $providers = DB::table('rproviders')->where('sertype', 'water')->get();
+        return view('reports.water-bill.index', compact('providers'));
     }
 
     public function gasbill(Request $request)
     {
         if ($request->ajax()) {
 
-            $query = ElectricityBill::select('electricity_bills.id', 'electricity_bills.transaction_id', 'electricity_bills.consumer_name', 'electricity_bills.consumer_no', 'electricity_bills.bill_no', 'electricity_bills.created_at', 'electricity_bills.bill_amount', 'electricity_bills.commission', 'electricity_bills.tds', 'electricity_bills.status', 'rproviders.name as provider_name', 'retailers.name as retailer_name', 'retailers.userId as retailer_userId');
+            $query = ElectricityBill::select('electricity_bills.id', 'electricity_bills.transaction_id', 'electricity_bills.consumer_name', 'electricity_bills.consumer_no', 'electricity_bills.bill_no', 'due_date', 'electricity_bills.created_at', 'electricity_bills.bill_amount', 'electricity_bills.commission', 'electricity_bills.tds', 'electricity_bills.bu_code', 'electricity_bills.status', 'electricity_bills.remark', 'rproviders.name as provider_name', 'retailers.name as retailer_name', 'retailers.mobile as retailer_userId');
             $query->where('electricity_bills.bill_type', 'gas');
             $query->join('retailers', 'retailers.id', 'electricity_bills.user_id');
             $query->join('rproviders', 'rproviders.id', 'electricity_bills.board_id');
@@ -169,52 +175,54 @@ class ElectricityController extends Controller
                 }
             }
 
-            if ($request->filled('is_refunded')) {
-                $query->where('electricity_bills.is_refunded', $request->get('is_refunded'));
-            }
+            if ($request->filled('status')) $query->where('electricity_bills.status', $request->get('status'));
+            if ($request->filled('provider')) $query->where('electricity_bills.board_id', $request->get('provider'));
 
             return Datatables::of($query)->addIndexColumn()
-                ->editColumn('retailer_name', function ($row) {
-                    return '<b>' . $row['retailer_name'] . '</b><br><b>' . $row['retailer_userId'] . '</b>';
-                })
                 ->editColumn('transaction_id', function ($row) {
-                    return '<b>' . $row['transaction_id'] . '</b>';
+                    return '<div class="fw-bold">' . $row['transaction_id'] . '</div><small class="text-info">' . $row['created_at']->format('d M, Y') . '</small>';
                 })
-                ->editColumn('created_at', function ($row) {
-                    return $row['created_at'] ? $row['created_at']->format('d M, Y') : '';
+                ->editColumn('retailer_name', function ($row) {
+                    return '<div class="fw-bold">' . $row['retailer_name'] . '</div><small  class="text-primary">' . $row['retailer_userId'] . '</small>';
                 })
-                ->addColumn('consumer_name', function ($row) {
-                    return '<b>' . trim($row->consumer_name) . '</b>';
+                ->addColumn('provider_name', function ($row) {
+                    return '<div class="td-table small fw-bold">' . trim($row->provider_name) . '</div>';
                 })
-                ->editColumn('bill_amount', function ($row) {
-                    return  '<div class="text-primary">₹ ' . $row['bill_amount'] . '</div><small class="text-success">₹ ' . $row['commission'] . ' </small> | <small class="text-primary">₹ ' . $row['tds'] . ' </small>';
+                ->editColumn('consumer_no', function ($row) {
+                    return '<div class="fw-bold">KNo : ' . $row['consumer_no'] . '</div><div  class="text-success fw-bold small">Due Date : ' . date('d F, Y', strtotime($row['due_date'])) . '</div><div  class="text-primary fw-bold small">Bill Amount : ₹' . $row['bill_amount'] . '</div>';
                 })
-                ->addColumn('action', function ($row) {
+                ->editColumn('commission', function ($row) {
+                    return  '<div class="text-success small fw-semibold">Commission : ₹ ' . $row['commission'] . ' </div><div class="text-primary small fw-semibold">TDS : ₹ ' . $row['tds'] . ' </div>';
+                })
+                ->editColumn('status', function ($row) {
                     $btn = '';
-                    if ($row['status'] == 1) {
-                        $btn .= '<span class="badge badge-light-success mb-2 me-4">Paid</span>';
-                    } else if ($row['status'] == 2) {
+                    if ($row['status'] == 2) {
                         $btn .= '<span class="badge badge-light-danger">Cancelled</span>';
-                        if ($row['is_refunded'] == 1)   $btn .= '<span class="badge badge-light-warning ms-1">Refunded</span>';
+                    } else if ($row['status'] == 1) {
+                        $btn .= '<span class="badge badge-light-success">Success</span>';
                     } else {
-                        $btn .= '<button class="btn btn-sm btn-outline-success update-status me-1" data-id="' . $row['id'] . '" data-type="1">Paid</button>';
-                        $btn .= '<button class="btn btn-sm btn-outline-danger update-status" data-id="' . $row['id'] . '" data-type="2">Cancel</button>';
+                        $btn .= '<span class="badge badge-light-primary">Pending</span>';
                     }
 
-                    return $btn;
+                    $btn .= '<p class="small"> Remark : ' . str($row['remark'] ?? 'N/A')->limit(20) . '</p>';
+                    return  $btn;
                 })
-                ->rawColumns(['transaction_id', 'consumer_name', 'bill_amount', 'action', 'retailer_name'])
+                ->addColumn('action', function ($row) {
+                    return '<button id="btndefault" type="button" class="btn btn-outline-dark action" data-all="' . htmlspecialchars(json_encode($row))  . '">Action</button>';
+                })
+                ->rawColumns(['transaction_id', 'provider_name', 'consumer_no', 'commission', 'status', 'action', 'retailer_name'])
                 ->make(true);
         }
 
-        return view('reports.gas-bill.index');
+        $providers = DB::table('rproviders')->where('sertype', 'gas')->get();
+        return view('reports.gas-bill.index', compact('providers'));
     }
 
     public function licbill(Request $request)
     {
         if ($request->ajax()) {
 
-            $query = ElectricityBill::select('electricity_bills.id', 'electricity_bills.transaction_id', 'electricity_bills.consumer_name', 'electricity_bills.consumer_no', 'electricity_bills.bill_no', 'electricity_bills.created_at', 'electricity_bills.bill_amount', 'electricity_bills.commission', 'electricity_bills.tds', 'electricity_bills.status', 'rproviders.name as provider_name', 'retailers.name as retailer_name', 'retailers.userId as retailer_userId');
+            $query = ElectricityBill::select('electricity_bills.id', 'electricity_bills.transaction_id', 'electricity_bills.consumer_name', 'electricity_bills.consumer_no', 'electricity_bills.bill_no', 'due_date', 'electricity_bills.created_at', 'electricity_bills.bill_amount', 'electricity_bills.commission', 'electricity_bills.tds', 'electricity_bills.bu_code', 'electricity_bills.status', 'electricity_bills.remark', 'rproviders.name as provider_name', 'retailers.name as retailer_name', 'retailers.mobile as retailer_userId');
             $query->where('electricity_bills.bill_type', 'lic');
             $query->join('retailers', 'retailers.id', 'electricity_bills.user_id');
             $query->join('rproviders', 'rproviders.id', 'electricity_bills.board_id');
@@ -230,50 +238,52 @@ class ElectricityController extends Controller
                 }
             }
 
-            if ($request->filled('is_refunded')) {
-                $query->where('electricity_bills.is_refunded', $request->get('is_refunded'));
-            }
+            if ($request->filled('status')) $query->where('electricity_bills.status', $request->get('status'));
+            if ($request->filled('provider')) $query->where('electricity_bills.board_id', $request->get('provider'));
 
             return Datatables::of($query)->addIndexColumn()
-                ->editColumn('retailer_name', function ($row) {
-                    return '<b>' . $row['retailer_name'] . '</b><br><b>' . $row['retailer_userId'] . '</b>';
-                })
                 ->editColumn('transaction_id', function ($row) {
-                    return '<b>' . $row['transaction_id'] . '</b>';
+                    return '<div class="fw-bold">' . $row['transaction_id'] . '</div><small class="text-info">' . $row['created_at']->format('d M, Y') . '</small>';
                 })
-                ->editColumn('created_at', function ($row) {
-                    return $row['created_at'] ? $row['created_at']->format('d M, Y') : '';
+                ->editColumn('retailer_name', function ($row) {
+                    return '<div class="fw-bold">' . $row['retailer_name'] . '</div><small  class="text-primary">' . $row['retailer_userId'] . '</small>';
                 })
-                ->addColumn('consumer_name', function ($row) {
-                    return '<b>' . trim($row->consumer_name) . '</b>';
+                ->addColumn('provider_name', function ($row) {
+                    return '<div class="td-table small fw-bold">' . trim($row->provider_name) . '</div>';
                 })
-                ->editColumn('bill_amount', function ($row) {
-                    return  '<div class="text-primary">₹ ' . $row['bill_amount'] . '</div><small class="text-success">₹ ' . $row['commission'] . ' </small> | <small class="text-primary">₹ ' . $row['tds'] . ' </small>';
+                ->editColumn('consumer_no', function ($row) {
+                    return '<div class="fw-bold">KNo : ' . $row['consumer_no'] . '</div><div  class="text-success fw-bold small">Due Date : ' . date('d F, Y', strtotime($row['due_date'])) . '</div><div  class="text-primary fw-bold small">Bill Amount : ₹' . $row['bill_amount'] . '</div>';
                 })
-                ->addColumn('action', function ($row) {
+                ->editColumn('commission', function ($row) {
+                    return  '<div class="text-success small fw-semibold">Commission : ₹ ' . $row['commission'] . ' </div><div class="text-primary small fw-semibold">TDS : ₹ ' . $row['tds'] . ' </div>';
+                })
+                ->editColumn('status', function ($row) {
                     $btn = '';
-                    if ($row['status'] == 1) {
-                        $btn .= '<span class="badge badge-light-success mb-2 me-4">Paid</span>';
-                    } else if ($row['status'] == 2) {
+                    if ($row['status'] == 2) {
                         $btn .= '<span class="badge badge-light-danger">Cancelled</span>';
-                        if ($row['is_refunded'] == 1)   $btn .= '<span class="badge badge-light-warning ms-1">Refunded</span>';
+                    } else if ($row['status'] == 1) {
+                        $btn .= '<span class="badge badge-light-success">Success</span>';
                     } else {
-                        $btn .= '<button class="btn btn-sm btn-outline-success update-status me-1" data-id="' . $row['id'] . '" data-type="1">Paid</button>';
-                        $btn .= '<button class="btn btn-sm btn-outline-danger update-status" data-id="' . $row['id'] . '" data-type="2">Cancel</button>';
+                        $btn .= '<span class="badge badge-light-primary">Pending</span>';
                     }
 
-                    return $btn;
+                    $btn .= '<p class="small"> Remark : ' . str($row['remark'] ?? 'N/A')->limit(20) . '</p>';
+                    return  $btn;
                 })
-                ->rawColumns(['transaction_id', 'consumer_name', 'bill_amount', 'action', 'retailer_name'])
+                ->addColumn('action', function ($row) {
+                    return '<button id="btndefault" type="button" class="btn btn-outline-dark action" data-all="' . htmlspecialchars(json_encode($row))  . '">Action</button>';
+                })
+                ->rawColumns(['transaction_id', 'provider_name', 'consumer_no', 'commission', 'status', 'action', 'retailer_name'])
                 ->make(true);
         }
 
-        return view('reports.lic-bill.index');
+        $providers = DB::table('rproviders')->where('sertype', 'lic')->get();
+        return view('reports.lic-bill.index', compact('providers'));
     }
 
     public function export(Request $request, $type)
     {
-        $query = ElectricityBill::select('electricity_bills.id', 'electricity_bills.transaction_id', 'electricity_bills.consumer_name', 'electricity_bills.consumer_no', 'electricity_bills.bill_no', 'electricity_bills.due_date', 'electricity_bills.created_at', 'electricity_bills.bill_amount', 'electricity_bills.commission', 'electricity_bills.tds', 'electricity_bills.bu_code', 'electricity_bills.status', 'rproviders.name as provider_name', 'rproviders.code1 as board_id', 'retailers.name as retailer_name', 'retailers.userId as retailer_userId');
+        $query = ElectricityBill::select('electricity_bills.id', 'electricity_bills.transaction_id', 'electricity_bills.consumer_name', 'electricity_bills.consumer_no', 'electricity_bills.bill_no', 'due_date', 'electricity_bills.created_at', 'electricity_bills.bill_amount', 'electricity_bills.commission', 'electricity_bills.tds', 'electricity_bills.bu_code', 'electricity_bills.status', 'electricity_bills.remark', 'rproviders.name as provider_name', 'retailers.name as retailer_name', 'retailers.mobile as retailer_userId');
         $query->where('electricity_bills.bill_type', $type);
         $query->join('retailers', 'retailers.id', 'electricity_bills.user_id');
         $query->join('rproviders', 'rproviders.id', 'electricity_bills.board_id');
@@ -296,47 +306,43 @@ class ElectricityController extends Controller
             $query->whereBetween('electricity_bills.created_at', [$startDate, $endDate]);
         }
 
-        if ($request->filled('is_refunded')) {
-            $query->where('electricity_bills.is_refunded', $request->get('is_refunded'));
-        }
+        if ($request->filled('status')) $query->where('electricity_bills.status', $request->get('status'));
+        if ($request->filled('provider')) $query->where('electricity_bills.board_id', $request->get('provider'));
 
         // Start Building Excel Sheet
         $spreadsheet = new Spreadsheet();
         $sheet = $spreadsheet->getActiveSheet();
-        $sheet->setTitle('Water Bill List');
+        $sheet->setTitle(ucfirst($type) . ' Bill List');
 
         $sheet->setCellValue('A1', 'Transaction Id');
-        $sheet->setCellValue('B1', 'Customer Name');
-        $sheet->setCellValue('C1', 'Customer No');
-        $sheet->setCellValue('D1', 'Board');
-        $sheet->setCellValue('E1', 'Bill No');
-        $sheet->setCellValue('F1', 'Bill Amount');
-        $sheet->setCellValue('G1', 'Commission Amount');
-        $sheet->setCellValue('H1', 'TDS Amount');
-        $sheet->setCellValue('I1', 'Due Date');
-        $sheet->setCellValue('J1', 'Created Date');
-        $sheet->setCellValue('K1', 'Status');
-        $sheet->setCellValue('L1', 'Is Refunded');
-        $sheet->setCellValue('M1', 'Provider Name');
-        $sheet->setCellValue('N1', 'BU Code');
-
+        $sheet->setCellValue('B1', 'Transaction Date');
+        $sheet->setCellValue('C1', 'Retailer Name');
+        $sheet->setCellValue('D1', 'Retailer Mobile');
+        $sheet->setCellValue('E1', 'Provider');
+        $sheet->setCellValue('F1', 'Bill No/K.No');
+        $sheet->setCellValue('G1', 'Due Date');
+        $sheet->setCellValue('H1', 'Bill Amount');
+        $sheet->setCellValue('I1', 'Profit');
+        $sheet->setCellValue('J1', 'TDS');
+        $sheet->setCellValue('K1', 'Status ');
+        $sheet->setCellValue('L1', 'Remark');
 
         $rows = 2;
         foreach ($query->get() as $row) {
+            $bu_code = $row->bu_code ? " (BU : $row->bu_code)" : '';
+
             $sheet->setCellValue('A' . $rows, $row->transaction_id);
-            $sheet->setCellValue('B' . $rows, trim($row->consumer_name));
-            $sheet->setCellValue('C' . $rows, $row->consumer_no);
-            $sheet->setCellValue('D' . $rows, $row->board_id);
-            $sheet->setCellValue('E' . $rows, $row->bill_no);
-            $sheet->setCellValue('F' . $rows, $row->bill_amount);
-            $sheet->setCellValue('G' . $rows, $row->commission);
-            $sheet->setCellValue('H' . $rows, $row->tds);
-            $sheet->setCellValue('I' . $rows, Date::PHPToExcel($row->due_date));
-            $sheet->setCellValue('J' . $rows, Date::PHPToExcel($row->created_at));
-            $sheet->setCellValue('K' . $rows, $row->status == 1 ? 'Paid' : 'Pending');
-            $sheet->setCellValue('L' . $rows, $row->is_refunded == 1 ? 'Yes' : 'No');
-            $sheet->setCellValue('M' . $rows, $row->provider_name);
-            $sheet->setCellValue('N' . $rows, $row->bu_code ?? '--');
+            $sheet->setCellValue('B' . $rows, Date::PHPToExcel($row->created_at));
+            $sheet->setCellValue('C' . $rows, $row->retailer_name);
+            $sheet->setCellValue('D' . $rows, $row->retailer_userId);
+            $sheet->setCellValue('E' . $rows, $row->provider_name . $bu_code);
+            $sheet->setCellValue('F' . $rows, $row->consumer_no);
+            $sheet->setCellValue('G' . $rows, Date::PHPToExcel($row->due_date));
+            $sheet->setCellValue('H' . $rows, $row->bill_amount);
+            $sheet->setCellValue('I' . $rows, $row->commission);
+            $sheet->setCellValue('J' . $rows, $row->tds);
+            $sheet->setCellValue('K' . $rows, $row->status == 1 ? 'Success' : ($row->status == 2 ? "Cancelled" : 'Pending'));
+            $sheet->setCellValue('L' . $rows, $row->remark ?? '--');
             $rows++;
         }
 
@@ -350,13 +356,14 @@ class ElectricityController extends Controller
             $sheet->getColumnDimension($column->getColumnIndex())->setAutoSize(true);
         }
 
-        $sheet->getStyle('A1:N' . $rows)->getAlignment()->setHorizontal('center');
-        $sheet->getStyle('C1:E' . $rows)->getNumberFormat()->setFormatCode('#');
-        $sheet->getStyle('F1:H' . $rows)->getNumberFormat()->setFormatCode('"₹" #,##0.00_-');
-        $sheet->getStyle('I1:J' . $rows)->getNumberFormat()->setFormatCode(NumberFormat::FORMAT_DATE_DDMMYYYY);
+        $sheet->getStyle('A1:L' . $rows)->getAlignment()->setHorizontal('center');
+        $sheet->getStyle('D1:F' . $rows)->getNumberFormat()->setFormatCode('#');
+        $sheet->getStyle('H1:J' . $rows)->getNumberFormat()->setFormatCode('"₹" #,##0.00_-');
+        $sheet->getStyle('B1:B' . $rows)->getNumberFormat()->setFormatCode(NumberFormat::FORMAT_DATE_DDMMYYYY);
+        $sheet->getStyle('G1:G' . $rows)->getNumberFormat()->setFormatCode(NumberFormat::FORMAT_DATE_DDMMYYYY);
 
         $spreadsheet->setActiveSheetIndex(0);
-        $fileName = "Bill Export.xlsx";
+        $fileName = ucfirst($type) . " Bill Export.xlsx";
         $writer = new Xlsx($spreadsheet);
 
         header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
@@ -367,64 +374,75 @@ class ElectricityController extends Controller
 
     public function submit(Request $request)
     {
-        if (!$request->filled('id'))     return response()->json(['status'    => false, 'message'   => "Please provide record id."]);
-        if (!$request->filled('type'))   return response()->json(['status'    => false, 'message'   => "Please provide submit type."]);
+        $validator = Validator::make($request->all(), [
+            'status'    => ['required', 'integer', 'in:1,2'],
+            'remark'    => ['required', 'string', 'min:2', 'max:100'],
+        ]);
 
-        $bill = ElectricityBill::find($request->get('id'));
-        if (!$bill) {
+        if ($validator->fails()) {
+            $err = array();
+            foreach ($validator->errors()->toArray() as $key => $value) {
+                $err[$key] = $value[0];
+            }
+
             return response()->json([
+                'status'    => false,
+                'message'   => "Invalid Input values.",
+                "data"      => $err
+            ]);
+        } else {
+
+            $bill = ElectricityBill::find($request->get('id'));
+            if (!$bill)  return response()->json([
                 'status'    => false,
                 'message'   => "Invalid Bill id..!!",
             ]);
-        }
 
-        if ($request->get('type') == 1) {
-            $bill->update(['status' => 1]);
-            return response()->json([
-                'status'    => true,
-                'message'   => "Bill Updated Successfully Type..!!",
+            $bill->update(['remark' => $request->remark]);
+            if (in_array($bill->status, [1, 2]))  return response()->json([
+                'status'    => false,
+                'message'   => "Bill already submitted..!!",
             ]);
-        }
 
-        if ($request->get('type') == 2) {
-
-            $service_id = 0;
-            if ($bill->bill_type === 'electricity') {
-                $service_id = config('constant.service_ids.electricity_bill');
-            } else if ($bill->bill_type === 'water') {
-                $service_id = config('constant.service_ids.water_bill');
-            } else if ($bill->bill_type === 'lic') {
-                $service_id = config('constant.service_ids.lic_premium');
-            } else if ($bill->bill_type === 'gas') {
-                $service_id = config('constant.service_ids.gas_payment');
+            if ($request->get('status') == 1) {
+                $bill->update($validator->validated());
             }
 
-            $serviceLog = ServiceUsesLog::where([
-                'request_id'                    => $bill->id,
-                'user_id'                       => $bill->user_id,
-                'user_type'                     => 4,
-                'customer_id'                   => 0,
-                'is_refunded'                   => 0,
-                'service_id'                    => $service_id,
-            ])->first();
+            if ($request->get('status') == 2) {
+                $service_id = 0;
+                if ($bill->bill_type === 'electricity') {
+                    $service_id = config('constant.service_ids.electricity_bill');
+                } else if ($bill->bill_type === 'water') {
+                    $service_id = config('constant.service_ids.water_bill');
+                } else if ($bill->bill_type === 'lic') {
+                    $service_id = config('constant.service_ids.lic_premium');
+                } else if ($bill->bill_type === 'gas') {
+                    $service_id = config('constant.service_ids.gas_payment');
+                }
 
-            if (!$serviceLog) {
-                return response()->json([
-                    'status'    => false,
-                    'message'   => "Invalid Transaction id..!!",
-                ]);
+                $serviceLog = ServiceUsesLog::where([
+                    'request_id'                    => $bill->id,
+                    'user_id'                       => $bill->user_id,
+                    'user_type'                     => 4,
+                    'customer_id'                   => 0,
+                    'is_refunded'                   => 0,
+                    'service_id'                    => $service_id,
+                ])->first();
+
+                if (!$serviceLog) {
+                    return response()->json([
+                        'status'    => false,
+                        'message'   => "Invalid Transaction id..!!",
+                    ]);
+                }
+
+                LedgerController::refundForBillPayment($bill, $serviceLog);
             }
 
-            LedgerController::refundForBillPayment($bill, $serviceLog);
             return response()->json([
                 'status'    => true,
-                'message'   => "Bill Updated Successfully Type..!!",
+                'message'   => "Bill Updated Successfully..!!",
             ]);
         }
-
-        return response()->json([
-            'status'    => false,
-            'message'   => "Invalid Submit Type..!!",
-        ]);
     }
 }

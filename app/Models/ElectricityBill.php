@@ -5,10 +5,11 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\User;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class ElectricityBill extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     // Table name (optional if Laravel naming convention is followed)
     protected $table = 'electricity_bills';
@@ -33,6 +34,7 @@ class ElectricityBill extends Model
         'tds_distributor',
         'commission_main_distributor',
         'tds_main_distributor',
+        'remark'
     ];
 
     // Cast these fields as dates

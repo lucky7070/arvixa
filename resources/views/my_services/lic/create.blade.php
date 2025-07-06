@@ -58,22 +58,22 @@
                     <div class="row mb-3">
                         <div class="col-md-3 mb-3">
                             <label for="consumer_name">Policy Holder Name</label>
-                            <input type="text" class="form-control text-dark consumer-name" name="consumer_name">
+                            <input type="text" class="form-control text-dark consumer-name" name="consumer_name" readonly>
                             <input type="hidden" class="" name="transaction_id" id="transaction-id">
                             @csrf
                         </div>
                         <div class="col-md-3 mb-3">
-                            <label for="bill_no">Email Id</label>
-                            <input type="text" class="form-control text-dark bill-no" name="bill_no">
+                            <label for="email">Email Id</label>
+                            <input type="email" class="form-control text-dark bill-no" name="email">
                             <small>You will receive the receipt there.</small>
                         </div>
                         <div class="col-md-3 mb-3">
                             <label for="bill_amount">Amount</label>
-                            <input type="number" class="form-control text-dark bill-amount" name="bill_amount">
+                            <input type="number" class="form-control text-dark bill-amount" name="bill_amount" readonly>
                         </div>
                         <div class="col-md-3 mb-3">
                             <label for="due_date">DOB Date</label>
-                            <input type="date" class="form-control text-dark due-date" name="due_date">
+                            <input type="date" class="form-control text-dark due-date" name="due_date" readonly>
                         </div>
                         <div class="col-md-12">
                             <button type="submit" class="btn btn-primary px-4">Pay Bill</button>
@@ -99,7 +99,7 @@
                                 <th>Transaction Id</th>
                                 <th>Consumer Name</th>
                                 <th>Consumer No</th>
-                                <th>Bill No</th>
+                                <th>Email</th>
                                 <th>Payment Date</th>
                                 <th>Bill Amount</th>
                                 <th>Commission</th>
@@ -118,9 +118,9 @@
                                 <td>{{ $row->consumer_no }}</td>
                                 <td>{{ $row->bill_no ?? '--' }}</td>
                                 <td>{{ $row->created_at->format('d F, Y h:i A') }}</td>
-                                <td><b class="text-primary">₹ {{ $row->bill_amount }}.00</b></td>
-                                <td><b class="text-success">₹ 0.{{ $row->commission }}</b></td>
-                                <td><b class="text-danger">₹ 0.{{ $row->tds }}</b></td>
+                                <td><b class="text-primary">₹ {{ $row->bill_amount }}</b></td>
+                                <td><b class="text-success">₹ {{ $row->commission }}</b></td>
+                                <td><b class="text-danger">₹ {{ $row->tds }}</b></td>
                                 <td>{{ $row->provider_name }}</td>
                                 <td>
                                     <button class="btn btn-sm btn-primary view" data-all='{!! htmlspecialchars(json_encode($row)) !!}'>View</button>
@@ -176,7 +176,6 @@
                     success: function(data) {
                         if (data.status) {
                             $('.consumer-name').val(data.data.consumer_name);
-                            $('.bill-no').val(data.data.bill_no);
                             $('.bill-amount').val(data.data.bill_amount);
                             $('.due-date').val(data.data.due_date);
                             $('#transaction-id').val(data.data.transaction_id)
@@ -205,7 +204,7 @@
                     minlength: 3,
                     maxlength: 100
                 },
-                bill_no: {
+                email: {
                     required: true,
                     email: true,
                     minlength: 5,
@@ -228,11 +227,11 @@
                     minlength: "Name must be at least 3 characters",
                     maxlength: "Name cannot exceed 100 characters"
                 },
-                bill_no: {
-                    required: "Please enter bill number",
+                email: {
+                    required: "Please enter Email",
                     email: "Provide valid email.",
-                    minlength: "Bill number must be at least 5 characters.",
-                    maxlength: "Bill number cannot exceed 50 characters."
+                    minlength: "Email must be at least 5 characters.",
+                    maxlength: "Email cannot exceed 50 characters."
                 },
                 bill_amount: {
                     required: "Please enter bill amount",

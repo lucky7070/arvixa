@@ -24,15 +24,11 @@
                 <thead class="bg-200 text-900">
                     <tr>
                         <th>Transaction Id</th>
-                        <th>Consumer Name</th>
-                        <th>Consumer No</th>
-                        <th>Bill No</th>
-                        <th>Date</th>
-                        <th>Bill Amount</th>
-                        <th>Commission</th>
-                        <th>TDS Amount</th>
                         <th>Provider Name</th>
                         <th>BU Code</th>
+                        <th>Bill Details</th>
+                        <th>Profit & TDS</th>
+                        <th>Status</th>
                         <th>Action</th>
                     </tr>
                 </thead>
@@ -53,39 +49,11 @@
         var table = $('.table-datatable').DataTable({
             ajax: "{{ request()->url() }}",
             order: [
-                [3, 'desc']
+                [0, 'desc']
             ],
             columns: [{
                     data: 'transaction_id',
-                    name: 'transaction_id'
-                },
-                {
-                    data: 'consumer_name',
-                    name: 'consumer_name'
-                },
-                {
-                    data: 'consumer_no',
-                    name: 'consumer_no',
-                },
-                {
-                    data: 'bill_no',
-                    name: 'bill_no',
-                },
-                {
-                    data: 'created_at',
-                    name: 'created_at'
-                },
-                {
-                    data: 'bill_amount',
-                    name: 'bill_amount',
-                },
-                {
-                    data: 'commission',
-                    name: 'commission',
-                },
-                {
-                    data: 'tds',
-                    name: 'tds',
+                    name: 'electricity_bills.created_at'
                 },
                 {
                     data: 'provider_name',
@@ -94,6 +62,18 @@
                 {
                     data: 'bu_code',
                     name: 'bu_code',
+                },
+                {
+                    data: 'consumer_no',
+                    name: 'consumer_no',
+                },
+                {
+                    data: 'commission',
+                    name: 'commission',
+                },
+                {
+                    data: 'status',
+                    name: 'status',
                 },
                 {
                     data: 'action',

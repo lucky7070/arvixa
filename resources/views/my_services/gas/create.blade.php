@@ -59,17 +59,17 @@
                     <div class="row mb-3">
                         <div class="col-md-3 mb-3">
                             <label for="consumer_name">Customer Name</label>
-                            <input type="text" class="form-control text-dark consumer-name" name="consumer_name">
+                            <input type="text" class="form-control text-dark consumer-name" name="consumer_name" readonly>
                             <input type="hidden" class="" name="transaction_id" id="transaction-id">
                             @csrf
                         </div>
                         <div class="col-md-3 mb-3">
                             <label for="bill_amount">Amount</label>
-                            <input type="number" class="form-control text-dark bill-amount" name="bill_amount">
+                            <input type="number" class="form-control text-dark bill-amount" name="bill_amount" readonly>
                         </div>
                         <div class="col-md-3 mb-3">
                             <label for="due_date">Booking Date</label>
-                            <input type="date" class="form-control text-dark due-date" name="due_date">
+                            <input type="date" class="form-control text-dark due-date" name="due_date" readonly>
                         </div>
                         <div class="col-md-12">
                             <button type="submit" class="btn btn-primary px-4">Pay Bill</button>
@@ -114,9 +114,9 @@
                                 <td>{{ $row->consumer_no }}</td>
                                 <td>{{ $row->bill_no ?? '--' }}</td>
                                 <td>{{ $row->created_at->format('d F, Y h:i A') }}</td>
-                                <td><b class="text-primary">₹ {{ $row->bill_amount }}.00</b></td>
-                                <td><b class="text-success">₹ 0.{{ $row->commission }}</b></td>
-                                <td><b class="text-danger">₹ 0.{{ $row->tds }}</b></td>
+                                <td><b class="text-primary">₹ {{ $row->bill_amount }}</b></td>
+                                <td><b class="text-success">₹ {{ $row->commission }}</b></td>
+                                <td><b class="text-danger">₹ {{ $row->tds }}</b></td>
                                 <td>{{ $row->provider_name }}</td>
                                 <td>
                                     <button class="btn btn-sm btn-primary view" data-all='{!! htmlspecialchars(json_encode($row)) !!}'>View</button>

@@ -17,7 +17,7 @@ class BillPay
                 'operator' => $provider,
             ]);
 
-            $record = $response->json('records.0', []);
+            $record = $response->json('records.0', ['CustomerName' => "Lucky", 'Billamount' => 99, 'Duedate' => now()->addDays(7)->format('Y-m-d')]);
             return $record;
         } catch (\Throwable $th) {
             return [];
@@ -35,7 +35,7 @@ class BillPay
                 'operator' => $provider,
             ]);
 
-            $record = $response->json('records.0', []);
+            $record = $response->json('records.0', ['CustomerName' => "Lucky", 'Billamount' => 99, 'Duedate' => now()->addDays(7)->format('Y-m-d')]);
 
             return $record;
         } catch (\Throwable $th) {
@@ -47,16 +47,15 @@ class BillPay
     {
         try {
 
-            $response = Http::get('https://www.mplan.in/api/lic.php', [
-                'apikey'   => config('constant.mplan_key'),
-                'offer'    => 'roffer',
-                'tel'      => $consumer_no,
-                'operator' => $provider,
+            $response = Http::get('https://connect.ekychub.in/v3/verification/bill_fetch', [
+                'username'      => config('constant.ekychub_username'),
+                'token'         => config('constant.ekychub_key'),
+                'consumer_id'   => $consumer_no,
+                'opcode'        => $provider,
+                'orderid'       => str()->uuid()->toString()
             ]);
 
-            $record = $response->json('records.0', []);
-
-            return $record;
+            return $response->json('data.0', []);
         } catch (\Throwable $th) {
             return [];
         }
@@ -66,16 +65,15 @@ class BillPay
     {
         try {
 
-            $response = Http::get('https://www.mplan.in/api/gas.php', [
-                'apikey'   => config('constant.mplan_key'),
-                'offer'    => 'roffer',
-                'tel'      => $consumer_no,
-                'operator' => $provider,
+            $response = Http::get('https://connect.ekychub.in/v3/verification/bill_fetch', [
+                'username'      => config('constant.ekychub_username'),
+                'token'         => config('constant.ekychub_key'),
+                'consumer_id'   => $consumer_no,
+                'opcode'        => $provider,
+                'orderid'       => str()->uuid()->toString()
             ]);
 
-            $record = $response->json('records.0', []);
-
-            return $record;
+            return $response->json('data.0', []);
         } catch (\Throwable $th) {
             return [];
         }
