@@ -247,7 +247,7 @@
                         @endrouteis">
                         <a href="{{ route('retailer.my-commission') }}" class="dropdown-toggle">
                             <div>
-                                <i class="fa-solid fa-chart-line"></i>
+                                <i class="fa-duotone fa-light fa-list-dropdown"></i>
                                 <span>My Commission</span>
                             </div>
                         </a>

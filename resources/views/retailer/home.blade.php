@@ -207,7 +207,7 @@
                         <div class="d-flex align-items-center justify-content-between gap-2">
                             <h5 class="card-title text-white">
                                 <img src="{{ asset('assets/img/electricity.png') }}" style="height: 36px" alt="">
-                                Electricity Bill
+                                {{ $row->service_name }}
                             </h5>
                         </div>
                     </div>
@@ -240,7 +240,7 @@
                         <div class="d-flex align-items-center justify-content-between gap-2">
                             <h5 class="card-title text-white">
                                 <img src="{{ asset('assets/img/water.png') }}" style="height: 36px" alt="">
-                                Water Bill Payment
+                               {{ $row->service_name }}
                             </h5>
                         </div>
                     </div>
@@ -273,7 +273,7 @@
                         <div class="d-flex align-items-center justify-content-between gap-2">
                             <h5 class="card-title text-white">
                                 <img src="{{ asset('assets/img/lic.png') }}" style="height: 36px" alt="">
-                                LIC Premium Payment
+                                {{ $row->service_name }}
                             </h5>
                         </div>
                     </div>
@@ -305,7 +305,7 @@
                         <div class="d-flex align-items-center justify-content-between gap-2">
                             <h5 class="card-title text-white">
                                 <img src="{{ asset('assets/img/gas.png') }}" style="height: 36px" alt="">
-                                Gas Payment
+                                {{ $row->service_name }}
                             </h5>
                         </div>
                     </div>

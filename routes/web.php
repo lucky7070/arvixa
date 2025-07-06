@@ -178,6 +178,7 @@ Route::middleware(['auth:retailer', 'authCheck'])->group(function () {
         Route::get('dashboard', [RetailersController::class, 'index'])->name('dashboard');
         Route::get('my-commission', [RetailersController::class, 'commission'])->name('my-commission');
         Route::post('default-board-save', [RetailersController::class, 'default_board_save'])->name('default-board-save');
+        Route::post('update-board', [RetailersController::class, 'update_board'])->name('update-board');
 
         Route::get('electricity-bill', [ElectricityController::class, 'view'])->name('electricity-bill');
         Route::post('electricity-bill-details', [ElectricityController::class, 'getDetails'])->name('electricity-bill-details');

@@ -40,8 +40,17 @@
                             <label for="consumer_no" class="form-label">Policy Number</label>
                             <input type="text" class="form-control consumer-no" name="consumer_no" placeholder="Consumer No" required oninput="this.value = this.value.replace(/[^0-9]/g, '')">
                         </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="email">Email Id</label>
+                            <input type="email" class="form-control text-dark" name="email">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="dob">DOB Date</label>
+                            <input type="date" class="form-control text-dark" name="dob">
+                        </div>
                         <div class="col-md-12">
                             <button type="submit" class="btn btn-primary px-4">Fetch Bill</button>
+                            <button type="button" id="save-board" class="btn btn-secondary px-4">Save Board</button>
                         </div>
                     </div>
                 </form>
@@ -63,17 +72,8 @@
                             @csrf
                         </div>
                         <div class="col-md-3 mb-3">
-                            <label for="email">Email Id</label>
-                            <input type="email" class="form-control text-dark bill-no" name="email">
-                            <small>You will receive the receipt there.</small>
-                        </div>
-                        <div class="col-md-3 mb-3">
                             <label for="bill_amount">Amount</label>
                             <input type="number" class="form-control text-dark bill-amount" name="bill_amount" readonly>
-                        </div>
-                        <div class="col-md-3 mb-3">
-                            <label for="due_date">DOB Date</label>
-                            <input type="date" class="form-control text-dark due-date" name="due_date" readonly>
                         </div>
                         <div class="col-md-12">
                             <button type="submit" class="btn btn-primary px-4">Pay Bill</button>
@@ -129,7 +129,9 @@
                             @endforeach
 
                             @if($resent->count() === 0)
-                                <tr><td class="text-center text-danger" colspan="8">No Transactions Available..!!</td></tr>
+                            <tr>
+                                <td class="text-center text-danger" colspan="8">No Transactions Available..!!</td>
+                            </tr>
                             @endif
                         </tbody>
                     </table>
@@ -159,6 +161,16 @@
                     minlength: 4,
                     required: true
                 },
+                email: {
+                    required: true,
+                    email: true,
+                    minlength: 5,
+                    maxlength: 50
+                },
+                date: {
+                    date: true,
+                    required: true
+                },
             },
             messages: {
                 operator: {
@@ -167,6 +179,16 @@
                 consumer_no: {
                     required: "Please enter consumer no.",
                 },
+                email: {
+                    required: "Please enter Email",
+                    email: "Provide valid email.",
+                    minlength: "Email must be at least 5 characters.",
+                    maxlength: "Email cannot exceed 50 characters."
+                },
+                due_date: {
+                    required: "Please select due date",
+                    date: "Please enter a valid date"
+                }
             },
             submitHandler: function(form) {
                 var formData = new FormData(form);
@@ -181,7 +203,6 @@
                         if (data.status) {
                             $('.consumer-name').val(data.data.consumer_name);
                             $('.bill-amount').val(data.data.bill_amount);
-                            $('.due-date').val(data.data.due_date);
                             $('#transaction-id').val(data.data.transaction_id)
                             $('#bill-details').show()
                             toastr.success(data.message);
@@ -208,21 +229,11 @@
                     minlength: 3,
                     maxlength: 100
                 },
-                email: {
-                    required: true,
-                    email: true,
-                    minlength: 5,
-                    maxlength: 50
-                },
                 bill_amount: {
                     required: true,
                     number: true,
                     min: 1,
                     max: 9999999
-                },
-                due_date: {
-                    required: true,
-                    date: true
                 },
             },
             messages: {
@@ -231,22 +242,13 @@
                     minlength: "Name must be at least 3 characters",
                     maxlength: "Name cannot exceed 100 characters"
                 },
-                email: {
-                    required: "Please enter Email",
-                    email: "Provide valid email.",
-                    minlength: "Email must be at least 5 characters.",
-                    maxlength: "Email cannot exceed 50 characters."
-                },
                 bill_amount: {
                     required: "Please enter bill amount",
                     number: "Please enter a valid number",
                     min: "Bill amount must be at least 1",
                     max: "Bill amount cannot exceed 9,999,999"
                 },
-                due_date: {
-                    required: "Please select due date",
-                    date: "Please enter a valid date"
-                }
+
             },
             submitHandler: function(form) {
                 const submitBtn = $(form).find('button[type="submit"]');
@@ -287,6 +289,20 @@
             $('#receipt').prop('href', "{{ $receipt }}" + data.id)
             $('#recipt-modal').modal('show')
         });
+
+        $('#save-board').on('click', function() {
+            const board_id = $('#operator').val();
+            $.post("{{ route('retailer.update-board') }}", {
+                board_id,
+                type: 'lic'
+            }, function(data) {
+                if (data.status) {
+                    toastr.success(data.message)
+                } else {
+                    toastr.error(data.message)
+                }
+            })
+        })
     });
 </script>
 

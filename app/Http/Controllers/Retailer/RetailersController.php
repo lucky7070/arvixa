@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers\Retailer;
 
+use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Models\BannerAdmin;
-use App\Models\Retailer;
 use App\Models\ServicesLog;
-use Illuminate\Http\Request;
+use App\Models\Retailer;
 use Illuminate\Support\Facades\DB;
 
 class RetailersController extends Controller
@@ -34,7 +34,7 @@ class RetailersController extends Controller
 
     public function commission(Request $request)
     {
-        $servicesLog = ServicesLog::select('services_logs.service_id', 'services.name as service_name', 'services_logs.sale_rate as sale_rate', 'services_logs.retailer_commission as retailer_commission')
+        $servicesLog = ServicesLog::select('services_logs.service_id', 'services.name as service_name', 'services_logs.sale_rate as sale_rate', 'services_logs.retailer_commission as retailer_commission', 'services_logs.commission_slots as commission_slots')
             ->leftJoin('services', 'services.id', '=', 'services_logs.service_id')
             ->where('user_id', auth()->guard('retailer')->id())
             ->where('services_logs.status', 1)
@@ -59,5 +59,37 @@ class RetailersController extends Controller
 
         Retailer::where('id', auth('retailer')->id())->update($validated);
         return to_route('retailer.my-commission')->withSuccess('Default Board updated successfully..!!');
+    }
+
+    public function update_board(Request $request)
+    {
+        $provider = DB::table('rproviders')->where('id', $request->board_id)->first();
+        if (!$provider) {
+            return response()->json(['status' => false, 'message' => 'Invalid provider selected.'], 400);
+        }
+
+        if (!$request->filled('type')) {
+            return response()->json(['status' => false, 'message' => 'Invalid Type.'], 400);
+        }
+
+        if (!in_array($request->filled('type'), ['water', 'lic', 'gas', 'electricity'])) {
+            return response()->json(['status' => false, 'message' => 'Invalid Type.'], 400);
+        }
+
+        if ($request->filled('type') != $provider->sertype) {
+            return response()->json(['status' => false, 'message' => 'Invalid Type.'], 400);
+        }
+
+        if ($request->filled('type')  === 'water') {
+            $request->user()->update(['default_water_board'         => $provider->id]);
+        } else if ($request->filled('type')  === 'lic') {
+            $request->user()->update(['default_lic_board'           => $provider->id]);
+        } else if ($request->filled('type')  === 'gas') {
+            $request->user()->update(['default_gas_board'           => $provider->id]);
+        } else if ($request->filled('type')  === 'electricity') {
+            $request->user()->update(['default_electricity_board'   => $provider->id]);
+        }
+
+        return response()->json(['status' => true, 'message' => 'Board updated successfully..!!'], 200);
     }
 }

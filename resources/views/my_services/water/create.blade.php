@@ -42,6 +42,7 @@
                         </div>
                         <div class="col-md-12">
                             <button type="submit" class="btn btn-primary px-4">Fetch Bill</button>
+                            <button type="button" id="save-board" class="btn btn-secondary px-4">Save Board</button>
                         </div>
                     </div>
                 </form>
@@ -121,7 +122,9 @@
                             @endforeach
 
                             @if($resent->count() === 0)
-                                <tr><td class="text-center text-danger" colspan="8">No Transactions Available..!!</td></tr>
+                            <tr>
+                                <td class="text-center text-danger" colspan="8">No Transactions Available..!!</td>
+                            </tr>
                             @endif
                         </tbody>
                     </table>
@@ -235,6 +238,20 @@
             $('#receipt').prop('href', "{{ $receipt }}" + data.id)
             $('#recipt-modal').modal('show')
         });
+
+        $('#save-board').on('click', function() {
+            const board_id = $('#operator').val();
+            $.post("{{ route('retailer.update-board') }}", {
+                board_id,
+                type: 'water'
+            }, function(data) {
+                if (data.status) {
+                    toastr.success(data.message)
+                } else {
+                    toastr.error(data.message)
+                }
+            })
+        })
     });
 </script>
 

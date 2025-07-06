@@ -42,6 +42,7 @@
                         </div>
                         <div class="col-md-12">
                             <button type="submit" class="btn btn-primary px-4">Fetch Bill</button>
+                            <button type="button" id="save-board" class="btn btn-secondary px-4">Save Board</button>
                         </div>
                     </div>
                 </form>
@@ -66,10 +67,6 @@
                         <div class="col-md-3 mb-3">
                             <label for="bill_amount">Amount</label>
                             <input type="number" class="form-control text-dark bill-amount" name="bill_amount" readonly>
-                        </div>
-                        <div class="col-md-3 mb-3">
-                            <label for="due_date">Booking Date</label>
-                            <input type="date" class="form-control text-dark due-date" name="due_date" readonly>
                         </div>
                         <div class="col-md-12">
                             <button type="submit" class="btn btn-primary px-4">Pay Bill</button>
@@ -125,7 +122,9 @@
                             @endforeach
 
                             @if($resent->count() === 0)
-                                <tr><td class="text-center text-danger" colspan="8">No Transactions Available..!!</td></tr>
+                            <tr>
+                                <td class="text-center text-danger" colspan="8">No Transactions Available..!!</td>
+                            </tr>
                             @endif
                         </tbody>
                     </table>
@@ -203,14 +202,8 @@
             rules: {
                 consumer_name: {
                     required: true,
-                    minlength: 3,
+                    minlength: 1,
                     maxlength: 100
-                },
-                bill_no: {
-                    required: true,
-                    digits: true,
-                    minlength: 5,
-                    maxlength: 20
                 },
                 bill_amount: {
                     required: true,
@@ -229,22 +222,12 @@
                     minlength: "Name must be at least 3 characters",
                     maxlength: "Name cannot exceed 100 characters"
                 },
-                bill_no: {
-                    required: "Please enter bill number",
-                    digits: "Bill number should contain only numbers",
-                    minlength: "Bill number must be at least 5 digits",
-                    maxlength: "Bill number cannot exceed 20 digits"
-                },
                 bill_amount: {
                     required: "Please enter bill amount",
                     number: "Please enter a valid number",
                     min: "Bill amount must be at least 1",
                     max: "Bill amount cannot exceed 9,999,999"
                 },
-                due_date: {
-                    required: "Please select due date",
-                    date: "Please enter a valid date"
-                }
             },
             submitHandler: function(form) {
                 const submitBtn = $(form).find('button[type="submit"]');
@@ -285,6 +268,20 @@
             $('#receipt').prop('href', "{{ $receipt }}" + data.id)
             $('#recipt-modal').modal('show')
         });
+
+        $('#save-board').on('click', function() {
+            const board_id = $('#operator').val();
+            $.post("{{ route('retailer.update-board') }}", {
+                board_id,
+                type: 'gas'
+            }, function(data) {
+                if (data.status) {
+                    toastr.success(data.message)
+                } else {
+                    toastr.error(data.message)
+                }
+            })
+        })
     });
 </script>
 

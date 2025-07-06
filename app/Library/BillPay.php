@@ -2,6 +2,8 @@
 
 namespace App\Library;
 
+use Error;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Http;
 
 class BillPay
@@ -17,7 +19,7 @@ class BillPay
                 'operator' => $provider,
             ]);
 
-            $record = $response->json('records.0', ['CustomerName' => "Lucky", 'Billamount' => 99, 'Duedate' => now()->addDays(7)->format('Y-m-d')]);
+            $record = $response->json('records.0', []);
             return $record;
         } catch (\Throwable $th) {
             return [];
@@ -35,7 +37,7 @@ class BillPay
                 'operator' => $provider,
             ]);
 
-            $record = $response->json('records.0', ['CustomerName' => "Lucky", 'Billamount' => 99, 'Duedate' => now()->addDays(7)->format('Y-m-d')]);
+            $record = $response->json('records.0', []);
 
             return $record;
         } catch (\Throwable $th) {
@@ -43,39 +45,40 @@ class BillPay
         }
     }
 
-    public static function getLicPremium(string $consumer_no, string $provider,)
+    public static function getLicPremium(string $consumer_no, string $provider, $email, $dob)
     {
-        try {
+        $response = Http::withOptions(['verify' => false])->get('https://connect.ekychub.in/v3/verification/bill_fetch', [
+            'username'      => config('constant.ekychub_username'),
+            'token'         => config('constant.ekychub_key'),
+            'consumer_id'   => $consumer_no,
+            'opcode'        => $provider,
+            'value1'        => Carbon::parse($dob)->format('d-m-Y'),
+            'value2'        => $email,
+            'orderid'       => str()->uuid()->toString()
+        ]);
 
-            $response = Http::get('https://connect.ekychub.in/v3/verification/bill_fetch', [
-                'username'      => config('constant.ekychub_username'),
-                'token'         => config('constant.ekychub_key'),
-                'consumer_id'   => $consumer_no,
-                'opcode'        => $provider,
-                'orderid'       => str()->uuid()->toString()
-            ]);
-
-            return $response->json('data.0', []);
-        } catch (\Throwable $th) {
-            return [];
+        return ['userName' => 'Lucky test', 'billAmount' => 590];
+        if ($response->json('status') === 'Success') {
+            return $response->json('data.0');
+        } else {
+            throw new Error($response->json('message'));
         }
     }
 
     public static function getGasBill(string $consumer_no, string $provider,)
     {
-        try {
+        $response = Http::withOptions(['verify' => false])->get('https://connect.ekychub.in/v3/verification/bill_fetch', [
+            'username'      => config('constant.ekychub_username'),
+            'token'         => config('constant.ekychub_key'),
+            'consumer_id'   => $consumer_no,
+            'opcode'        => $provider,
+            'orderid'       => str()->uuid()->toString()
+        ]);
 
-            $response = Http::get('https://connect.ekychub.in/v3/verification/bill_fetch', [
-                'username'      => config('constant.ekychub_username'),
-                'token'         => config('constant.ekychub_key'),
-                'consumer_id'   => $consumer_no,
-                'opcode'        => $provider,
-                'orderid'       => str()->uuid()->toString()
-            ]);
-
-            return $response->json('data.0', []);
-        } catch (\Throwable $th) {
-            return [];
+        if ($response->json('status') === 'Success') {
+            return $response->json('data.0');
+        } else {
+            throw new Error($response->json('message'));
         }
     }
 }

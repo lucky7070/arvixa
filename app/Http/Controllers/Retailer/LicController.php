@@ -72,7 +72,9 @@ class LicController extends Controller
     {
         $validation = Validator::make($request->all(), [
             'operator'      => ['required', 'numeric', 'min:1'],
-            'consumer_no'   => ['required', 'string', 'min:2', 'max:50']
+            'consumer_no'   => ['required', 'string', 'min:2', 'max:50'],
+            'email'         => ['required', 'string', 'min:2', 'max:50', 'email'],
+            'dob'           => ['required', 'string', 'before:today'],
         ]);
 
         if ($validation->fails()) {
@@ -88,23 +90,50 @@ class LicController extends Controller
             ]);
         } else {
 
-            $provider = DB::table('rproviders')->where('id', $request->operator)->first();
-            if (!$provider) {
-                return response()->json(['error' => 'Invalid provider selected.'], 400);
-            }
+            try {
+                $provider = DB::table('rproviders')->where('id', $request->operator)->first();
+                if (!$provider) {
+                    return response()->json(['error' => 'Invalid provider selected.'], 400);
+                }
 
-            $record = BillPay::getGasBill($request->consumer_no, $provider->code1);
-            if (!empty($record['CustomerName'])) {
+                $record = BillPay::getLicPremium($request->consumer_no, $provider->code1, $request->email, $request->dob);
+                if (!empty($record['userName']) && !empty($record['billAmount'])) {
+                    $fetch =   FetchBill::create([
+                        'transaction_id'    => (string) Str::uuid(),
+                        'service_id'        => $this->service_id,
+                        'user_id'           => $this->user_id,
+                        'board_id'          => $request->operator,
+                        'consumer_no'       => $request->consumer_no,
+                        'consumer_name'     => $record['userName'],
+                        'bu_code'           => $request->dob,
+                        'bill_no'           => $request->email,
+                        'bill_amount'       => $record['billAmount'],
+                        'due_date'          =>  empty($record['dueDate']) ? date('Y-m-d') : Carbon::parse($record['dueDate'])->format('Y-m-d')
+                    ]);
+
+                    return response()->json([
+                        'status'    => true,
+                        'message'   => 'Bill details fetched successfully.',
+                        'data'      => $fetch
+                    ]);
+                } else {
+                    return response()->json([
+                        'status'    => false,
+                        'message'   => 'No bill amount pending.',
+                        'data'      => []
+                    ]);
+                }
+
                 $fetch =   FetchBill::create([
                     'transaction_id'    => (string) Str::uuid(),
                     'service_id'        => $this->service_id,
                     'user_id'           => $this->user_id,
                     'board_id'          => $request->operator,
                     'consumer_no'       => $request->consumer_no,
-                    'consumer_name'     => @$record['userName'],
+                    'consumer_name'     => '',
                     'bill_no'           => '',
-                    'bill_amount'       => @$record['billnetamount'] ?? @$record['billAmount'] ?? '',
-                    'due_date'          => Carbon::parse($record['dueDate'])->format('Y-m-d')
+                    'bill_amount'       => null,
+                    'due_date'          => null,
                 ]);
 
                 return response()->json([
@@ -112,43 +141,19 @@ class LicController extends Controller
                     'message'   => 'Bill details fetched successfully.',
                     'data'      => $fetch
                 ]);
-            } else {
+            } catch (\Throwable $th) {
                 return response()->json([
                     'status'    => false,
-                    'message'   => 'No bill amount pending.',
+                    'message'   => $th->getMessage(),
                     'data'      => []
                 ]);
             }
-
-            $fetch =   FetchBill::create([
-                'transaction_id'    => (string) Str::uuid(),
-                'service_id'        => $this->service_id,
-                'user_id'           => $this->user_id,
-                'board_id'          => $request->operator,
-                'consumer_no'       => $request->consumer_no,
-                'consumer_name'     => '',
-                'bill_no'           => '',
-                'bill_amount'       => null,
-                'due_date'          => null,
-            ]);
-
-            return response()->json([
-                'status'    => true,
-                'message'   => 'Bill details fetched successfully.',
-                'data'      => $fetch
-            ]);
         }
     }
 
     public function paymentSubmit(Request $request)
     {
-        $request->validate([
-            'transaction_id'        => ['required', 'string', 'max:100'],
-            'email'                 => ['required', 'string', 'min:3', 'max:100', 'email'],
-            'consumer_name'         => ['required', 'string', 'min:3', 'max:100'],
-            'bill_amount'           => ['required', 'numeric', 'min:1', 'max:9999999'],
-            'due_date'              => ['required', 'date', 'before:today'],
-        ]);
+        $request->validate(['transaction_id'        => ['required', 'string', 'max:100']]);
 
         $data = FetchBill::where('transaction_id', $request->get('transaction_id'))->where('user_id', $this->user_id)->where('service_id', $this->service_id)->first();
         if (!$data)  return back()->with('error', "Invalid Request..!!");
@@ -202,12 +207,13 @@ class LicController extends Controller
             'board_id'                      => $data->board_id,
             'consumer_no'                   => $data->consumer_no,
             'consumer_name'                 => $data->consumer_name,
-            'bill_no'                       => $request->email,
+            'bill_no'                       => $data->bill_no,
             'bill_amount'                   => $amountDue,
             'bill_type'                     => 'lic',
             'due_date'                      => $data->due_date,
             'commission'                    => $commission,
             'tds'                           => $tds_amount,
+            'bu_code'                       => $data->bu_code,
             'status'                        => 0,
             'commission_distributor'        => $commission_distributor,
             'tds_distributor'               => $tds_distributor,
