@@ -132,6 +132,10 @@
                                 </td>
                             </tr>
                             @endforeach
+
+                            @if($resent->count() === 0)
+                                <tr><td class="text-center text-danger" colspan="8">No Transactions Available..!!</td></tr>
+                            @endif
                         </tbody>
                     </table>
                 </div>

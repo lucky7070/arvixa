@@ -235,7 +235,7 @@ class WaterController extends Controller
                         $btn .= '<span class="badge badge-light-primary">Pending</span>';
                     }
 
-                    $btn .= '<p class="small"> Remark : ' . str($row['remark'] ?? 'N/A')->limit(20) . '</p>';
+                    // $btn .= '<p class="small"> Remark : ' . str($row['remark'] ?? 'N/A')->limit(20) . '</p>';
                     return  $btn;
                 })
                 ->addColumn('action', function ($row) {
