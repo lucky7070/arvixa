@@ -178,17 +178,17 @@ class GasController extends Controller
         $tds_main_distributor = 0;
 
         if ($serviceLog->retailer_commission > 0) {
-            $commission = round((float) $amountDue * $serviceLog->retailer_commission / 100, 4);
+            $commission = round($serviceLog->retailer_commission, 4);
             $tds_amount = round($commission * (float) $request->site_settings['tds_percent'] / 100, 4);
         }
 
         if ($serviceLog->distributor_commission > 0) {
-            $commission_distributor = round((float) $amountDue * $serviceLog->distributor_commission / 100, 4);
+            $commission_distributor = round($serviceLog->distributor_commission, 4);
             $tds_distributor = round($commission_distributor * (float) $request->site_settings['tds_percent'] / 100, 4);
         }
 
         if ($serviceLog->main_distributor_commission > 0) {
-            $commission_main_distributor = round((float) $amountDue * $serviceLog->main_distributor_commission / 100, 4);
+            $commission_main_distributor = round($serviceLog->main_distributor_commission, 4);
             $tds_main_distributor = round($commission_main_distributor * (float) $request->site_settings['tds_percent'] / 100, 4);
         }
 

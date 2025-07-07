@@ -80,13 +80,13 @@ class RetailersController extends Controller
             return response()->json(['status' => false, 'message' => 'Invalid Type.'], 400);
         }
 
-        if ($request->filled('type')  === 'water') {
+        if ($request->get('type')  === 'water') {
             $request->user()->update(['default_water_board'         => $provider->id]);
-        } else if ($request->filled('type')  === 'lic') {
+        } else if ($request->get('type')  === 'lic') {
             $request->user()->update(['default_lic_board'           => $provider->id]);
-        } else if ($request->filled('type')  === 'gas') {
+        } else if ($request->get('type')  === 'gas') {
             $request->user()->update(['default_gas_board'           => $provider->id]);
-        } else if ($request->filled('type')  === 'electricity') {
+        } else if ($request->get('type')  === 'electricity') {
             $request->user()->update(['default_electricity_board'   => $provider->id]);
         }
 
