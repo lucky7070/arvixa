@@ -98,6 +98,6 @@ class Retailer extends Authenticatable
     }
     public function electricity_bill()
     {
-        return $this->hasMany(ElectricityBill::class, 'user_id', 'id');
+        return $this->hasMany(Bill::class, 'user_id', 'id');
     }
 }

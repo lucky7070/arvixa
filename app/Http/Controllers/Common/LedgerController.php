@@ -20,7 +20,7 @@ use App\Models\MSMECertificate;
 use \Yajra\Datatables\Datatables;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
-use App\Models\ElectricityBill;
+use App\Models\Bill;
 
 class LedgerController extends Controller
 {
@@ -418,7 +418,7 @@ class LedgerController extends Controller
         }
     }
 
-    public static function chargeForBillPayment(ElectricityBill $bill, ServicesLog $serviceLog)
+    public static function chargeForBillPayment(Bill $bill, ServicesLog $serviceLog)
     {
         DB::beginTransaction();
         try {
@@ -614,7 +614,7 @@ class LedgerController extends Controller
         }
     }
 
-    public static function refundForBillPayment(ElectricityBill $bill, ServiceUsesLog $serviceLog)
+    public static function refundForBillPayment(Bill $bill, ServiceUsesLog $serviceLog)
     {
         DB::beginTransaction();
         try {

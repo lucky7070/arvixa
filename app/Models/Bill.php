@@ -4,15 +4,14 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use App\Models\User;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class ElectricityBill extends Model
+class Bill extends Model
 {
     use HasFactory, SoftDeletes;
 
     // Table name (optional if Laravel naming convention is followed)
-    protected $table = 'electricity_bills';
+    protected $table = 'bills';
 
     // Mass assignable fields
     protected $fillable = [

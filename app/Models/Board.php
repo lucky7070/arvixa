@@ -11,13 +11,13 @@ class Board extends Model
     use HasFactory;
 
     // Table name (optional if Laravel naming convention is followed)
-    protected $table = 'rproviders';
+    protected $table = 'providers';
 
     // Mass assignable fields
     protected $guarded = [];
-    
+
     public function electricity_bill()
     {
-        return $this->hasMany(ElectricityBill::class);
+        return $this->hasMany(Bill::class);
     }
 }

@@ -4,10 +4,11 @@ namespace App\Http\Controllers\Reports;
 
 use App\Http\Controllers\Common\LedgerController;
 use Illuminate\Http\Request;
-use App\Models\ElectricityBill;
+use App\Models\Bill;
 use Illuminate\Support\Carbon;
 use \Yajra\Datatables\Datatables;
 use App\Http\Controllers\Controller;
+use App\Models\Provider;
 use App\Models\ServiceUsesLog;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
@@ -30,24 +31,24 @@ class ElectricityController extends Controller
     {
         if ($request->ajax()) {
 
-            $query = ElectricityBill::select('electricity_bills.id', 'electricity_bills.transaction_id', 'electricity_bills.consumer_name', 'electricity_bills.consumer_no', 'electricity_bills.bill_no', 'due_date', 'electricity_bills.created_at', 'electricity_bills.bill_amount', 'electricity_bills.commission', 'electricity_bills.tds', 'electricity_bills.bu_code', 'electricity_bills.status', 'electricity_bills.remark', 'rproviders.name as provider_name', 'retailers.name as retailer_name', 'retailers.mobile as retailer_userId');
-            $query->where('electricity_bills.bill_type', 'electricity');
-            $query->join('retailers', 'retailers.id', 'electricity_bills.user_id');
-            $query->join('rproviders', 'rproviders.id', 'electricity_bills.board_id');
+            $query = Bill::select('bills.id', 'bills.transaction_id', 'bills.consumer_name', 'bills.consumer_no', 'bills.bill_no', 'due_date', 'bills.created_at', 'bills.bill_amount', 'bills.commission', 'bills.tds', 'bills.bu_code', 'bills.status', 'bills.remark', 'providers.name as provider_name', 'retailers.name as retailer_name', 'retailers.mobile as retailer_userId');
+            $query->where('bills.bill_type', 'electricity');
+            $query->join('retailers', 'retailers.id', 'bills.user_id');
+            $query->join('providers', 'providers.id', 'bills.board_id');
 
             if (request('start_date') && request('end_date')) {
                 $startDate = Carbon::parse(request('start_date'));
                 $endDate = Carbon::parse(request('end_date'))->endOfDay();
                 if ($startDate->eq($endDate)) {
                     $startDateStr = $startDate->format('Y-m-d');
-                    $query->whereDate('electricity_bills.created_at', $startDateStr);
+                    $query->whereDate('bills.created_at', $startDateStr);
                 } else {
-                    $query->whereBetween('electricity_bills.created_at', [$startDate, $endDate]);
+                    $query->whereBetween('bills.created_at', [$startDate, $endDate]);
                 }
             }
 
-            if ($request->filled('status')) $query->where('electricity_bills.status', $request->get('status'));
-            if ($request->filled('provider')) $query->where('electricity_bills.board_id', $request->get('provider'));
+            if ($request->filled('status')) $query->where('bills.status', $request->get('status'));
+            if ($request->filled('provider')) $query->where('bills.board_id', $request->get('provider'));
 
             return Datatables::of($query)->addIndexColumn()
                 ->editColumn('transaction_id', function ($row) {
@@ -88,7 +89,7 @@ class ElectricityController extends Controller
                 ->make(true);
         }
 
-        $providers = DB::table('rproviders')->where('sertype', 'electricity')->get();
+        $providers = Provider::where('type', 'electricity')->get();
         return view('reports.electricity-bill.index', compact('providers'));
     }
 
@@ -96,24 +97,24 @@ class ElectricityController extends Controller
     {
         if ($request->ajax()) {
 
-            $query = ElectricityBill::select('electricity_bills.id', 'electricity_bills.transaction_id', 'electricity_bills.consumer_name', 'electricity_bills.consumer_no', 'electricity_bills.bill_no', 'due_date', 'electricity_bills.created_at', 'electricity_bills.bill_amount', 'electricity_bills.commission', 'electricity_bills.tds', 'electricity_bills.bu_code', 'electricity_bills.status', 'electricity_bills.remark', 'rproviders.name as provider_name', 'retailers.name as retailer_name', 'retailers.mobile as retailer_userId');
-            $query->where('electricity_bills.bill_type', 'water');
-            $query->join('retailers', 'retailers.id', 'electricity_bills.user_id');
-            $query->join('rproviders', 'rproviders.id', 'electricity_bills.board_id');
+            $query = Bill::select('bills.id', 'bills.transaction_id', 'bills.consumer_name', 'bills.consumer_no', 'bills.bill_no', 'due_date', 'bills.created_at', 'bills.bill_amount', 'bills.commission', 'bills.tds', 'bills.bu_code', 'bills.status', 'bills.remark', 'providers.name as provider_name', 'retailers.name as retailer_name', 'retailers.mobile as retailer_userId');
+            $query->where('bills.bill_type', 'water');
+            $query->join('retailers', 'retailers.id', 'bills.user_id');
+            $query->join('providers', 'providers.id', 'bills.board_id');
 
             if (request('start_date') && request('end_date')) {
                 $startDate = Carbon::parse(request('start_date'));
                 $endDate = Carbon::parse(request('end_date'))->endOfDay();
                 if ($startDate->eq($endDate)) {
                     $startDateStr = $startDate->format('Y-m-d');
-                    $query->whereDate('electricity_bills.created_at', $startDateStr);
+                    $query->whereDate('bills.created_at', $startDateStr);
                 } else {
-                    $query->whereBetween('electricity_bills.created_at', [$startDate, $endDate]);
+                    $query->whereBetween('bills.created_at', [$startDate, $endDate]);
                 }
             }
 
-            if ($request->filled('status')) $query->where('electricity_bills.status', $request->get('status'));
-            if ($request->filled('provider')) $query->where('electricity_bills.board_id', $request->get('provider'));
+            if ($request->filled('status')) $query->where('bills.status', $request->get('status'));
+            if ($request->filled('provider')) $query->where('bills.board_id', $request->get('provider'));
 
             return Datatables::of($query)->addIndexColumn()
                 ->editColumn('transaction_id', function ($row) {
@@ -151,7 +152,7 @@ class ElectricityController extends Controller
                 ->make(true);
         }
 
-        $providers = DB::table('rproviders')->where('sertype', 'water')->get();
+        $providers = Provider::where('type', 'water')->get();
         return view('reports.water-bill.index', compact('providers'));
     }
 
@@ -159,24 +160,24 @@ class ElectricityController extends Controller
     {
         if ($request->ajax()) {
 
-            $query = ElectricityBill::select('electricity_bills.id', 'electricity_bills.transaction_id', 'electricity_bills.consumer_name', 'electricity_bills.consumer_no', 'electricity_bills.bill_no', 'due_date', 'electricity_bills.created_at', 'electricity_bills.bill_amount', 'electricity_bills.commission', 'electricity_bills.tds', 'electricity_bills.bu_code', 'electricity_bills.status', 'electricity_bills.remark', 'rproviders.name as provider_name', 'retailers.name as retailer_name', 'retailers.mobile as retailer_userId');
-            $query->where('electricity_bills.bill_type', 'gas');
-            $query->join('retailers', 'retailers.id', 'electricity_bills.user_id');
-            $query->join('rproviders', 'rproviders.id', 'electricity_bills.board_id');
+            $query = Bill::select('bills.id', 'bills.transaction_id', 'bills.consumer_name', 'bills.consumer_no', 'bills.bill_no', 'due_date', 'bills.created_at', 'bills.bill_amount', 'bills.commission', 'bills.tds', 'bills.bu_code', 'bills.status', 'bills.remark', 'providers.name as provider_name', 'retailers.name as retailer_name', 'retailers.mobile as retailer_userId');
+            $query->where('bills.bill_type', 'gas');
+            $query->join('retailers', 'retailers.id', 'bills.user_id');
+            $query->join('providers', 'providers.id', 'bills.board_id');
 
             if (request('start_date') && request('end_date')) {
                 $startDate = Carbon::parse(request('start_date'));
                 $endDate = Carbon::parse(request('end_date'))->endOfDay();
                 if ($startDate->eq($endDate)) {
                     $startDateStr = $startDate->format('Y-m-d');
-                    $query->whereDate('electricity_bills.created_at', $startDateStr);
+                    $query->whereDate('bills.created_at', $startDateStr);
                 } else {
-                    $query->whereBetween('electricity_bills.created_at', [$startDate, $endDate]);
+                    $query->whereBetween('bills.created_at', [$startDate, $endDate]);
                 }
             }
 
-            if ($request->filled('status')) $query->where('electricity_bills.status', $request->get('status'));
-            if ($request->filled('provider')) $query->where('electricity_bills.board_id', $request->get('provider'));
+            if ($request->filled('status')) $query->where('bills.status', $request->get('status'));
+            if ($request->filled('provider')) $query->where('bills.board_id', $request->get('provider'));
 
             return Datatables::of($query)->addIndexColumn()
                 ->editColumn('transaction_id', function ($row) {
@@ -214,7 +215,7 @@ class ElectricityController extends Controller
                 ->make(true);
         }
 
-        $providers = DB::table('rproviders')->where('sertype', 'gas')->get();
+        $providers = Provider::where('type', 'gas')->get();
         return view('reports.gas-bill.index', compact('providers'));
     }
 
@@ -222,24 +223,24 @@ class ElectricityController extends Controller
     {
         if ($request->ajax()) {
 
-            $query = ElectricityBill::select('electricity_bills.id', 'electricity_bills.transaction_id', 'electricity_bills.consumer_name', 'electricity_bills.consumer_no', 'electricity_bills.bill_no', 'due_date', 'electricity_bills.created_at', 'electricity_bills.bill_amount', 'electricity_bills.commission', 'electricity_bills.tds', 'electricity_bills.bu_code', 'electricity_bills.status', 'electricity_bills.remark', 'rproviders.name as provider_name', 'retailers.name as retailer_name', 'retailers.mobile as retailer_userId');
-            $query->where('electricity_bills.bill_type', 'lic');
-            $query->join('retailers', 'retailers.id', 'electricity_bills.user_id');
-            $query->join('rproviders', 'rproviders.id', 'electricity_bills.board_id');
+            $query = Bill::select('bills.id', 'bills.transaction_id', 'bills.consumer_name', 'bills.consumer_no', 'bills.bill_no', 'due_date', 'bills.created_at', 'bills.bill_amount', 'bills.commission', 'bills.tds', 'bills.bu_code', 'bills.status', 'bills.remark', 'providers.name as provider_name', 'retailers.name as retailer_name', 'retailers.mobile as retailer_userId');
+            $query->where('bills.bill_type', 'lic');
+            $query->join('retailers', 'retailers.id', 'bills.user_id');
+            $query->join('providers', 'providers.id', 'bills.board_id');
 
             if (request('start_date') && request('end_date')) {
                 $startDate = Carbon::parse(request('start_date'));
                 $endDate = Carbon::parse(request('end_date'))->endOfDay();
                 if ($startDate->eq($endDate)) {
                     $startDateStr = $startDate->format('Y-m-d');
-                    $query->whereDate('electricity_bills.created_at', $startDateStr);
+                    $query->whereDate('bills.created_at', $startDateStr);
                 } else {
-                    $query->whereBetween('electricity_bills.created_at', [$startDate, $endDate]);
+                    $query->whereBetween('bills.created_at', [$startDate, $endDate]);
                 }
             }
 
-            if ($request->filled('status')) $query->where('electricity_bills.status', $request->get('status'));
-            if ($request->filled('provider')) $query->where('electricity_bills.board_id', $request->get('provider'));
+            if ($request->filled('status')) $query->where('bills.status', $request->get('status'));
+            if ($request->filled('provider')) $query->where('bills.board_id', $request->get('provider'));
 
             return Datatables::of($query)->addIndexColumn()
                 ->editColumn('transaction_id', function ($row) {
@@ -277,16 +278,16 @@ class ElectricityController extends Controller
                 ->make(true);
         }
 
-        $providers = DB::table('rproviders')->where('sertype', 'lic')->get();
+        $providers = Provider::where('type', 'lic')->get();
         return view('reports.lic-bill.index', compact('providers'));
     }
 
     public function export(Request $request, $type)
     {
-        $query = ElectricityBill::select('electricity_bills.id', 'electricity_bills.transaction_id', 'electricity_bills.consumer_name', 'electricity_bills.consumer_no', 'electricity_bills.bill_no', 'due_date', 'electricity_bills.created_at', 'electricity_bills.bill_amount', 'electricity_bills.commission', 'electricity_bills.tds', 'electricity_bills.bu_code', 'electricity_bills.status', 'electricity_bills.remark', 'rproviders.name as provider_name', 'retailers.name as retailer_name', 'retailers.mobile as retailer_userId');
-        $query->where('electricity_bills.bill_type', $type);
-        $query->join('retailers', 'retailers.id', 'electricity_bills.user_id');
-        $query->join('rproviders', 'rproviders.id', 'electricity_bills.board_id');
+        $query = Bill::select('bills.id', 'bills.transaction_id', 'bills.consumer_name', 'bills.consumer_no', 'bills.bill_no', 'due_date', 'bills.created_at', 'bills.bill_amount', 'bills.commission', 'bills.tds', 'bills.bu_code', 'bills.status', 'bills.remark', 'providers.name as provider_name', 'retailers.name as retailer_name', 'retailers.mobile as retailer_userId');
+        $query->where('bills.bill_type', $type);
+        $query->join('retailers', 'retailers.id', 'bills.user_id');
+        $query->join('providers', 'providers.id', 'bills.board_id');
 
         if (request('start_date') && request('end_date')) {
             $startDate = Carbon::parse(request('start_date'));
@@ -301,13 +302,13 @@ class ElectricityController extends Controller
 
         if ($startDate->eq($endDate)) {
             $startDateStr = $startDate->format('Y-m-d');
-            $query->whereDate('electricity_bills.created_at', $startDateStr);
+            $query->whereDate('bills.created_at', $startDateStr);
         } else {
-            $query->whereBetween('electricity_bills.created_at', [$startDate, $endDate]);
+            $query->whereBetween('bills.created_at', [$startDate, $endDate]);
         }
 
-        if ($request->filled('status')) $query->where('electricity_bills.status', $request->get('status'));
-        if ($request->filled('provider')) $query->where('electricity_bills.board_id', $request->get('provider'));
+        if ($request->filled('status')) $query->where('bills.status', $request->get('status'));
+        if ($request->filled('provider')) $query->where('bills.board_id', $request->get('provider'));
 
         // Start Building Excel Sheet
         $spreadsheet = new Spreadsheet();
@@ -392,7 +393,7 @@ class ElectricityController extends Controller
             ]);
         } else {
 
-            $bill = ElectricityBill::find($request->get('id'));
+            $bill = Bill::find($request->get('id'));
             if (!$bill)  return response()->json([
                 'status'    => false,
                 'message'   => "Invalid Bill id..!!",

@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Retailer;
 
 use App\Http\Controllers\Common\LedgerController;
 use App\Models\Services;
-use App\Models\ElectricityBill;
+use App\Models\Bill;
 use App\Models\ServicesLog;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
@@ -12,6 +12,7 @@ use Illuminate\Support\Carbon;
 use App\Http\Controllers\Controller;
 use App\Library\BillPay;
 use App\Models\FetchBill;
+use App\Models\Provider;
 use App\Models\ServiceUsesLog;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\DB;
@@ -54,13 +55,13 @@ class WaterController extends Controller
         if (!$serviceLog)
             return to_route('retailer.dashboard')->with('error', "Service Can't be used..!!");
 
-        $providers = DB::table('rproviders')->where('sertype', 'water')->get();
+        $providers = Provider::where('type', 'water')->get();
 
         $receipt = route('retailer.water-download.receipt', '') . '/';
-        $resent = ElectricityBill::select('electricity_bills.id', 'electricity_bills.transaction_id', 'electricity_bills.consumer_name', 'electricity_bills.consumer_no', 'electricity_bills.bill_no', 'electricity_bills.created_at', 'electricity_bills.due_date', 'electricity_bills.bill_amount', 'electricity_bills.bu_code', 'electricity_bills.commission', 'electricity_bills.tds', 'rproviders.name as provider_name')
-            ->where('electricity_bills.bill_type', 'water')
-            ->where('electricity_bills.user_id', $this->user_id)
-            ->join('rproviders', 'rproviders.id', 'electricity_bills.board_id')
+        $resent = Bill::select('bills.id', 'bills.transaction_id', 'bills.consumer_name', 'bills.consumer_no', 'bills.bill_no', 'bills.created_at', 'bills.due_date', 'bills.bill_amount', 'bills.bu_code', 'bills.commission', 'bills.tds', 'providers.name as provider_name')
+            ->where('bills.bill_type', 'water')
+            ->where('bills.user_id', $this->user_id)
+            ->join('providers', 'providers.id', 'bills.board_id')
             ->limit(5)
             ->latest()
             ->get();
@@ -87,12 +88,12 @@ class WaterController extends Controller
                 "data"      => $err
             ]);
         } else {
-            $provider = DB::table('rproviders')->where('id', $request->operator)->first();
+            $provider = Provider::where('id', $request->operator)->first();
             if (!$provider) {
                 return response()->json(['error' => 'Invalid provider selected.'], 400);
             }
 
-            $record = BillPay::getWaterBill($request->consumer_no, $provider->code1);
+            $record = BillPay::getWaterBill($request->consumer_no, $provider->code);
             if (!empty($record['CustomerName'])) {
                 $fetch =   FetchBill::create([
                     'transaction_id'    => (string) Str::uuid(),
@@ -171,7 +172,7 @@ class WaterController extends Controller
             $tds_main_distributor = round($commission_main_distributor * (float) $request->site_settings['tds_percent'] / 100, 4);
         }
 
-        $bill =   ElectricityBill::create([
+        $bill =   Bill::create([
             'transaction_id'                => 'TXN' . str()->upper(str()->random(10)),
             'user_id'                       => $data->user_id,
             'board_id'                      => $data->board_id,
@@ -204,10 +205,10 @@ class WaterController extends Controller
         $service = Services::find($this->service_id);
         if ($request->ajax()) {
 
-            $data = ElectricityBill::select('electricity_bills.id', 'electricity_bills.transaction_id', 'electricity_bills.consumer_name', 'electricity_bills.consumer_no', 'electricity_bills.bill_no', 'due_date', 'electricity_bills.created_at', 'electricity_bills.bill_amount', 'electricity_bills.commission', 'electricity_bills.tds', 'electricity_bills.bu_code', 'electricity_bills.status', 'electricity_bills.remark', 'rproviders.name as provider_name')
-                ->where('electricity_bills.bill_type', 'water')
-                ->where('electricity_bills.user_id', $this->user_id)
-                ->join('rproviders', 'rproviders.id', 'electricity_bills.board_id');
+            $data = Bill::select('bills.id', 'bills.transaction_id', 'bills.consumer_name', 'bills.consumer_no', 'bills.bill_no', 'due_date', 'bills.created_at', 'bills.bill_amount', 'bills.commission', 'bills.tds', 'bills.bu_code', 'bills.status', 'bills.remark', 'providers.name as provider_name')
+                ->where('bills.bill_type', 'water')
+                ->where('bills.user_id', $this->user_id)
+                ->join('providers', 'providers.id', 'bills.board_id');
 
             return Datatables::of($data)->addIndexColumn()
                 ->editColumn('transaction_id', function ($row) {
@@ -250,10 +251,10 @@ class WaterController extends Controller
 
     public function export()
     {
-        $data = ElectricityBill::select('electricity_bills.id', 'electricity_bills.transaction_id', 'electricity_bills.consumer_name', 'electricity_bills.consumer_no', 'electricity_bills.bill_no', 'electricity_bills.created_at', 'electricity_bills.due_date', 'electricity_bills.bill_amount', 'electricity_bills.commission', 'electricity_bills.tds', 'rproviders.name as provider_name', 'rproviders.code1 as board_id')
-            ->where('electricity_bills.bill_type', 'water')
-            ->where('electricity_bills.user_id', $this->user_id)
-            ->join('rproviders', 'rproviders.id', 'electricity_bills.board_id');
+        $data = Bill::select('bills.id', 'bills.transaction_id', 'bills.consumer_name', 'bills.consumer_no', 'bills.bill_no', 'bills.created_at', 'bills.due_date', 'bills.bill_amount', 'bills.commission', 'bills.tds', 'providers.name as provider_name', 'providers.code as board_id')
+            ->where('bills.bill_type', 'water')
+            ->where('bills.user_id', $this->user_id)
+            ->join('providers', 'providers.id', 'bills.board_id');
 
         // Start Building Excel Sheet
         $spreadsheet = new Spreadsheet();
@@ -319,7 +320,7 @@ class WaterController extends Controller
 
     public function downloadReceipt($id)
     {
-        $bill = ElectricityBill::with(['retailer', 'board'])->findOrFail($id);
+        $bill = Bill::with(['retailer', 'board'])->findOrFail($id);
         $service = 'Water Bill';
         $pdf = PDF::loadView('retailer.receipts.receipt', compact('bill', 'service'));
         return $pdf->download('Water_Receipt_' . $bill->bill_no . '.pdf');

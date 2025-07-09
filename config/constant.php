@@ -25,13 +25,11 @@ return [
         'pan_cards_edit'            => 1,
         'pan_cards_add_digital'     => 2,
         'pan_cards_edit_digital'    => 2,
-        'income_tax_return'          => 3,
-        // 'msme_certificate'          => 3,
-
-        'water_bill'                => 7,
-        'electricity_bill'          => 8,
-        'gas_payment'               => 9,
-        'lic_premium'               => 10,
+        'income_tax_return'         => 3,
+        'water_bill'                => 4,
+        'electricity_bill'          => 5,
+        'gas_payment'               => 6,
+        'lic_premium'               => 7,
     ],
 
     'front_url'     => 'https://pan.arvixa.in/',
@@ -169,7 +167,7 @@ return [
     ],
 
 
-    'commission-slab-services' => [7, 8, 10],
+    'commission-slab-services' => [4, 5, 7],
     'bill-slab' => [
         ['start' => 1,      'end' => 200,   'commission'        => 0],
         ['start' => 201,    'end' => 999,   'commission'        => 0],

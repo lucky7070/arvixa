@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Retailer;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Models\BannerAdmin;
+use App\Models\Provider;
 use App\Models\ServicesLog;
 use App\Models\Retailer;
 use Illuminate\Support\Facades\DB;
@@ -43,7 +44,7 @@ class RetailersController extends Controller
             ->get();
 
         $user = $request->user();
-        $providers = DB::table('rproviders')->get()->groupBy('sertype');
+        $providers = Provider::get()->groupBy('type');
         return view('retailer.commission', compact('servicesLog', 'user', 'providers'));
     }
 
@@ -63,7 +64,7 @@ class RetailersController extends Controller
 
     public function update_board(Request $request)
     {
-        $provider = DB::table('rproviders')->where('id', $request->board_id)->first();
+        $provider = Provider::where('id', $request->board_id)->first();
         if (!$provider) {
             return response()->json(['status' => false, 'message' => 'Invalid provider selected.'], 400);
         }
@@ -76,7 +77,7 @@ class RetailersController extends Controller
             return response()->json(['status' => false, 'message' => 'Invalid Type.'], 400);
         }
 
-        if ($request->filled('type') != $provider->sertype) {
+        if ($request->filled('type') != $provider->type) {
             return response()->json(['status' => false, 'message' => 'Invalid Type.'], 400);
         }
 

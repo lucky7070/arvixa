@@ -62,7 +62,7 @@
                             @csrf
                             <select class="form-control" name="default_electricity_board" id="default_electricity_board">
                                 <option value=""> -- Select Board --</option>
-                                @foreach($providers['electricity'] as $provider)
+                                @foreach($providers['electricity'] ?? [] as $provider)
                                 <option value="{{ $provider->id }}" @selected($user->default_electricity_board == $provider->id)>{{ $provider->name }}</option>
                                 @endforeach
                             </select>
@@ -72,7 +72,7 @@
                             <label for="default_water_board" class="form-label">Select Water Board</label>
                             <select class="form-control" name="default_water_board" id="default_water_board">
                                 <option value=""> -- Select Board --</option>
-                                @foreach($providers['water'] as $provider)
+                                @foreach($providers['water'] ?? [] as $provider)
                                 <option value="{{ $provider->id }}" @selected($user->default_water_board == $provider->id)>{{ $provider->name }}</option>
                                 @endforeach
                             </select>
@@ -81,7 +81,7 @@
                             <label for="default_gas_board" class="form-label">Select Gas Board</label>
                             <select class="form-control" name="default_gas_board" id="default_gas_board">
                                 <option value=""> -- Select Board --</option>
-                                @foreach($providers['gas'] as $provider)
+                                @foreach($providers['gas'] ?? [] as $provider)
                                 <option value="{{ $provider->id }}" @selected($user->default_gas_board == $provider->id)>{{ $provider->name }}</option>
                                 @endforeach
                             </select>
@@ -90,7 +90,7 @@
                             <label for="default_lic_board" class="form-label">Select LIC Board</label>
                             <select class="form-control" name="default_lic_board" id="default_lic_board">
                                 <option value=""> -- Select Board --</option>
-                                @foreach($providers['lic'] as $provider)
+                                @foreach($providers['lic'] ?? [] as $provider)
                                 <option value="{{ $provider->id }}" @selected($user->default_lic_board == $provider->id)>{{ $provider->name }}</option>
                                 @endforeach
                             </select>

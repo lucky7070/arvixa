@@ -51,11 +51,11 @@
             ],
             columns: [{
                     data: 'transaction_id',
-                    name: 'electricity_bills.created_at'
+                    name: 'bills.created_at'
                 },
                 {
                     data: 'provider_name',
-                    name: 'rproviders.name',
+                    name: 'providers.name',
                 },
                 {
                     data: 'consumer_no',
