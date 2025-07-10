@@ -52,7 +52,7 @@ class ElectricityController extends Controller
 
             return Datatables::of($query)->addIndexColumn()
                 ->editColumn('transaction_id', function ($row) {
-                    return '<div class="fw-bold">' . $row['transaction_id'] . '</div><small class="text-info">' . $row['created_at']->format('d M, Y') . '</small>';
+                    return '<div class="fw-bold">' . $row['transaction_id'] . '</div><small class="text-info">' . $row['created_at']->format('d M, Y h:i A') . '</small>';
                 })
                 ->editColumn('retailer_name', function ($row) {
                     return '<div class="fw-bold">' . $row['retailer_name'] . '</div><small  class="text-primary">' . $row['retailer_userId'] . '</small>';
@@ -118,7 +118,7 @@ class ElectricityController extends Controller
 
             return Datatables::of($query)->addIndexColumn()
                 ->editColumn('transaction_id', function ($row) {
-                    return '<div class="fw-bold">' . $row['transaction_id'] . '</div><small class="text-info">' . $row['created_at']->format('d M, Y') . '</small>';
+                    return '<div class="fw-bold">' . $row['transaction_id'] . '</div><small class="text-info">' . $row['created_at']->format('d M, Y h:i A') . '</small>';
                 })
                 ->editColumn('retailer_name', function ($row) {
                     return '<div class="fw-bold">' . $row['retailer_name'] . '</div><small  class="text-primary">' . $row['retailer_userId'] . '</small>';
@@ -181,7 +181,7 @@ class ElectricityController extends Controller
 
             return Datatables::of($query)->addIndexColumn()
                 ->editColumn('transaction_id', function ($row) {
-                    return '<div class="fw-bold">' . $row['transaction_id'] . '</div><small class="text-info">' . $row['created_at']->format('d M, Y') . '</small>';
+                    return '<div class="fw-bold">' . $row['transaction_id'] . '</div><small class="text-info">' . $row['created_at']->format('d M, Y h:i A') . '</small>';
                 })
                 ->editColumn('retailer_name', function ($row) {
                     return '<div class="fw-bold">' . $row['retailer_name'] . '</div><small  class="text-primary">' . $row['retailer_userId'] . '</small>';
@@ -244,7 +244,7 @@ class ElectricityController extends Controller
 
             return Datatables::of($query)->addIndexColumn()
                 ->editColumn('transaction_id', function ($row) {
-                    return '<div class="fw-bold">' . $row['transaction_id'] . '</div><small class="text-info">' . $row['created_at']->format('d M, Y') . '</small>';
+                    return '<div class="fw-bold">' . $row['transaction_id'] . '</div><small class="text-info">' . $row['created_at']->format('d M, Y h:i A') . '</small>';
                 })
                 ->editColumn('retailer_name', function ($row) {
                     return '<div class="fw-bold">' . $row['retailer_name'] . '</div><small  class="text-primary">' . $row['retailer_userId'] . '</small>';
@@ -321,12 +321,13 @@ class ElectricityController extends Controller
         $sheet->setCellValue('D1', 'Retailer Mobile');
         $sheet->setCellValue('E1', 'Provider');
         $sheet->setCellValue('F1', 'Bill No/K.No');
-        $sheet->setCellValue('G1', 'Due Date');
-        $sheet->setCellValue('H1', 'Bill Amount');
-        $sheet->setCellValue('I1', 'Profit');
-        $sheet->setCellValue('J1', 'TDS');
-        $sheet->setCellValue('K1', 'Status ');
-        $sheet->setCellValue('L1', 'Remark');
+        $sheet->setCellValue('G1', 'Consumer Name');
+        $sheet->setCellValue('H1', 'Due Date');
+        $sheet->setCellValue('I1', 'Bill Amount');
+        $sheet->setCellValue('J1', 'Profit');
+        $sheet->setCellValue('K1', 'TDS');
+        $sheet->setCellValue('L1', 'Status ');
+        $sheet->setCellValue('M1', 'Remark');
 
         $rows = 2;
         foreach ($query->get() as $row) {
@@ -338,12 +339,13 @@ class ElectricityController extends Controller
             $sheet->setCellValue('D' . $rows, $row->retailer_userId);
             $sheet->setCellValue('E' . $rows, $row->provider_name . $bu_code);
             $sheet->setCellValue('F' . $rows, $row->consumer_no);
-            $sheet->setCellValue('G' . $rows, Date::PHPToExcel($row->due_date));
-            $sheet->setCellValue('H' . $rows, $row->bill_amount);
-            $sheet->setCellValue('I' . $rows, $row->commission);
-            $sheet->setCellValue('J' . $rows, $row->tds);
-            $sheet->setCellValue('K' . $rows, $row->status == 1 ? 'Success' : ($row->status == 2 ? "Cancelled" : 'Pending'));
-            $sheet->setCellValue('L' . $rows, $row->remark ?? '--');
+            $sheet->setCellValue('G' . $rows, $row->consumer_name);
+            $sheet->setCellValue('H' . $rows, Date::PHPToExcel($row->due_date));
+            $sheet->setCellValue('I' . $rows, $row->bill_amount);
+            $sheet->setCellValue('J' . $rows, $row->commission);
+            $sheet->setCellValue('K' . $rows, $row->tds);
+            $sheet->setCellValue('L' . $rows, $row->status == 1 ? 'Success' : ($row->status == 2 ? "Cancelled" : 'Pending'));
+            $sheet->setCellValue('M' . $rows, $row->remark ?? '--');
             $rows++;
         }
 
@@ -357,11 +359,11 @@ class ElectricityController extends Controller
             $sheet->getColumnDimension($column->getColumnIndex())->setAutoSize(true);
         }
 
-        $sheet->getStyle('A1:L' . $rows)->getAlignment()->setHorizontal('center');
+        $sheet->getStyle('A1:M' . $rows)->getAlignment()->setHorizontal('center');
         $sheet->getStyle('D1:F' . $rows)->getNumberFormat()->setFormatCode('#');
-        $sheet->getStyle('H1:J' . $rows)->getNumberFormat()->setFormatCode('"₹" #,##0.00_-');
+        $sheet->getStyle('I1:K' . $rows)->getNumberFormat()->setFormatCode('"₹" #,##0.00_-');
         $sheet->getStyle('B1:B' . $rows)->getNumberFormat()->setFormatCode(NumberFormat::FORMAT_DATE_DDMMYYYY);
-        $sheet->getStyle('G1:G' . $rows)->getNumberFormat()->setFormatCode(NumberFormat::FORMAT_DATE_DDMMYYYY);
+        $sheet->getStyle('H1:H' . $rows)->getNumberFormat()->setFormatCode(NumberFormat::FORMAT_DATE_DDMMYYYY);
 
         $spreadsheet->setActiveSheetIndex(0);
         $fileName = ucfirst($type) . " Bill Export.xlsx";

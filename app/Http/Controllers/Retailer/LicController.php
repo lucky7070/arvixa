@@ -135,7 +135,7 @@ class LicController extends Controller
                     'consumer_name'     => '',
                     'bill_no'           => '',
                     'bill_amount'       => null,
-                    'due_date'          => null,
+                    'due_date'          => now(),
                 ]);
 
                 return response()->json([
@@ -251,7 +251,7 @@ class LicController extends Controller
 
             return Datatables::of($data)->addIndexColumn()
                 ->editColumn('transaction_id', function ($row) {
-                    return '<div class="fw-bold">' . $row['transaction_id'] . '</div><small class="text-info">' . $row['created_at']->format('d M, Y') . '</small>';
+                    return '<div class="fw-bold">' . $row['transaction_id'] . '</div><small class="text-info">' . $row['created_at']->format('d M, Y h:i A') . '</small>';
                 })
                 ->addColumn('provider_name', function ($row) {
                     return '<div class="td-table small fw-bold">' . trim($row->provider_name) . '</div>';
