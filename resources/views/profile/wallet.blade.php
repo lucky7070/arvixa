@@ -110,7 +110,7 @@
             var table = $('.table-datatable').DataTable({
                 ajax: "{{ route($route_name) }}",
                 order: [
-                    [1, 'desc']
+                    [0, 'desc']
                 ],
                 columns: [{
                         data: 'voucher_no',

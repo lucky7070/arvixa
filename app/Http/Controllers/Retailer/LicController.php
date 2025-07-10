@@ -97,34 +97,35 @@ class LicController extends Controller
                     return response()->json(['error' => 'Invalid provider selected.'], 400);
                 }
 
-                $record = BillPay::getLicPremium($request->consumer_no, $provider->code, $request->email, $request->dob);
-                if (!empty($record['userName']) && !empty($record['billAmount'])) {
-                    $fetch =   FetchBill::create([
-                        'transaction_id'    => (string) Str::uuid(),
-                        'service_id'        => $this->service_id,
-                        'user_id'           => $this->user_id,
-                        'board_id'          => $request->operator,
-                        'consumer_no'       => $request->consumer_no,
-                        'consumer_name'     => $record['userName'],
-                        'bu_code'           => $request->dob,
-                        'bill_no'           => $request->email,
-                        'bill_amount'       => $record['billAmount'],
-                        'due_date'          =>  empty($record['dueDate']) ? date('Y-m-d') : Carbon::parse($record['dueDate'])->format('Y-m-d')
-                    ]);
+                // $record = BillPay::getLicPremium($request->consumer_no, $provider->code, $request->email, $request->dob);
+                // if (!empty($record['userName']) && !empty($record['billAmount'])) {
+                //     $fetch =   FetchBill::create([
+                //         'transaction_id'    => (string) Str::uuid(),
+                //         'service_id'        => $this->service_id,
+                //         'user_id'           => $this->user_id,
+                //         'board_id'          => $request->operator,
+                //         'consumer_no'       => $request->consumer_no,
+                //         'consumer_name'     => $record['userName'],
+                //         'bu_code'           => $request->dob,
+                //         'bill_no'           => $request->email,
+                //         'bill_amount'       => $record['billAmount'],
+                //         'due_date'          =>  empty($record['dueDate']) ? date('Y-m-d') : Carbon::parse($record['dueDate'])->format('Y-m-d')
+                //     ]);
 
-                    return response()->json([
-                        'status'    => true,
-                        'message'   => 'Bill details fetched successfully.',
-                        'data'      => $fetch
-                    ]);
-                } else {
-                    return response()->json([
-                        'status'    => false,
-                        'message'   => 'No bill amount pending.',
-                        'data'      => []
-                    ]);
-                }
+                //     return response()->json([
+                //         'status'    => true,
+                //         'message'   => 'Bill details fetched successfully.',
+                //         'data'      => $fetch
+                //     ]);
+                // } else {
+                //     return response()->json([
+                //         'status'    => false,
+                //         'message'   => 'No bill amount pending.',
+                //         'data'      => []
+                //     ]);
+                // }
 
+                // Skip Fetch API
                 $fetch =   FetchBill::create([
                     'transaction_id'    => (string) Str::uuid(),
                     'service_id'        => $this->service_id,
@@ -154,7 +155,13 @@ class LicController extends Controller
 
     public function paymentSubmit(Request $request)
     {
-        $request->validate(['transaction_id'        => ['required', 'string', 'max:100']]);
+        $request->validate([
+            'transaction_id'        => ['required', 'string', 'min:2', 'max:100'],
+            'bill_amount'           => ['required', 'numeric', 'min:2', 'max:1000000'],
+            'consumer_name'         => ['required', 'string', 'min:2', 'max:100']
+
+            // 
+        ]);
 
         $data = FetchBill::where('transaction_id', $request->get('transaction_id'))->where('user_id', $this->user_id)->where('service_id', $this->service_id)->first();
         if (!$data)  return back()->with('error', "Invalid Request..!!");
@@ -170,7 +177,8 @@ class LicController extends Controller
             return to_route('retailer.dashboard')->with('error', "Service Can't be used..!!");
 
         $balance = (float) $this->user->user_balance;
-        $amountDue = (float) $data->bill_amount;
+        $amountDue = (float) $request->bill_amount;
+        $consumer_name = $request->consumer_name;
 
         if ($amountDue == 0)  return back()->with('error', "No bill amount pending..!!");
 
@@ -207,7 +215,7 @@ class LicController extends Controller
             'user_id'                       => $data->user_id,
             'board_id'                      => $data->board_id,
             'consumer_no'                   => $data->consumer_no,
-            'consumer_name'                 => $data->consumer_name,
+            'consumer_name'                 => $consumer_name,
             'bill_no'                       => $data->bill_no,
             'bill_amount'                   => $amountDue,
             'bill_type'                     => 'lic',

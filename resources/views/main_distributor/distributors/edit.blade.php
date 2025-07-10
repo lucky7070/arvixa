@@ -159,7 +159,7 @@
                 <label class="form-label" for="aadhar_doc">Aadhar Document <span class="required">*</span></label>
                 <div class="input-group">
                     <input class="form-control" id="aadhar_doc" name="aadhar_doc" type="file" />
-                    @if($retailer['aadhar_doc'])
+                    @if($distributor['aadhar_doc'])
                     <a href="{{ asset('/storage/'.$distributor['aadhar_doc']) }}" target="_blank" class="btn btn-dark" type="button"><i class="fa-solid fa-download"></i></a>
                     @endif
                 </div>

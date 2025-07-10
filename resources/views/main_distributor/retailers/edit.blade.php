@@ -82,7 +82,12 @@
             </div>
             <div class="col-lg-4 col-md-6 mt-2">
                 <label class="form-label" for="image">Image</label>
-                <input class="form-control" id="image" name="image" type="file" value="" />
+                <div class="input-group">
+                    <input class="form-control" id="image" name="image" type="file" value="" />
+                    @if($retailer['image'])
+                    <a href="{{ asset('/storage/'.$retailer['image']) }}" target="_blank" class="btn btn-dark" type="button"><i class="fa-solid fa-download"></i></a>
+                    @endif
+                </div>
                 @error('image')
                 <span class="invalid-feedback" role="alert">
                     <strong>{{ $message }}</strong>
@@ -168,7 +173,9 @@
                 <label class="form-label" for="aadhar_doc">Aadhar Document <span class="required">*</span></label>
                 <div class="input-group">
                     <input class="form-control" id="aadhar_doc" name="aadhar_doc" type="file" />
+                    @if($retailer['aadhar_doc'])
                     <a href="{{ asset('/storage/'.$retailer['aadhar_doc']) }}" target="_blank" class="btn btn-dark" type="button"><i class="fa-solid fa-download"></i></a>
+                    @endif
                 </div>
                 @error('aadhar_doc')
                 <span class="invalid-feedback" role="alert">

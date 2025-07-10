@@ -47,6 +47,7 @@ class BillPay
 
     public static function getLicPremium(string $consumer_no, string $provider, $email, $dob)
     {
+        return ['userName' => null, 'billAmount' => null];
         $response = Http::withOptions(['verify' => false])->get('https://connect.ekychub.in/v3/verification/bill_fetch', [
             'username'      => config('constant.ekychub_username'),
             'token'         => config('constant.ekychub_key'),
@@ -57,7 +58,6 @@ class BillPay
             'orderid'       => str()->uuid()->toString()
         ]);
 
-      //  return ['userName' => 'Lucky test', 'billAmount' => 590];
         if ($response->json('status') === 'Success') {
             return $response->json('data.0');
         } else {

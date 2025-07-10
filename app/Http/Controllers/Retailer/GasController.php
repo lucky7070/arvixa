@@ -118,24 +118,6 @@ class GasController extends Controller
                         'data'      => []
                     ]);
                 }
-
-                $fetch =   FetchBill::create([
-                    'transaction_id'    => (string) Str::uuid(),
-                    'service_id'        => $this->service_id,
-                    'user_id'           => $this->user_id,
-                    'board_id'          => $request->operator,
-                    'consumer_no'       => $request->consumer_no,
-                    'consumer_name'     => '',
-                    'bill_no'           => '',
-                    'bill_amount'       => null,
-                    'due_date'          => null,
-                ]);
-
-                return response()->json([
-                    'status'    => true,
-                    'message'   => 'Bill details fetched successfully.',
-                    'data'      => $fetch
-                ]);
             } catch (\Throwable $th) {
                 return response()->json([
                     'status'    => false,
