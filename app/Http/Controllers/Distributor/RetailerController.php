@@ -82,24 +82,47 @@ class RetailerController extends Controller
     public function save(Request $request)
     {
         $validated = $request->validate([
-            'name'      => ['required', 'string', 'max:255'],
-            'status'    => ['required', 'integer'],
-            'email'     => ['required', new CheckUnique('retailers')],
-            'mobile'    => ['required', 'digits:10', new CheckUnique('retailers'), 'regex:' . config('constant.phoneRegExp')],
-            'password'  => ['required', 'string', 'min:8', 'confirmed'],
-            'image'     => ['image', 'mimes:jpg,png,jpeg', 'max:2048'],
+            'name'                  => ['required', 'string', 'max:255'],
+            'status'                => ['required', 'integer'],
+            'email'                 => ['required', new CheckUnique('retailers')],
+            'mobile'                => ['required', 'digits:10', new CheckUnique('retailers'), 'regex:' . config('constant.phoneRegExp')],
+            'password'              => ['required', 'string', 'min:8', 'confirmed'],
+            'image'                 => ['image', 'mimes:jpg,png,jpeg', 'max:2048'],
+            'date_of_birth'         => ['required', 'date'],
+            'gender'                => ['required', 'string', 'in:male,female,other'],
+            'address'               => ['required', 'string', 'max:500'],
+            'shop_name'             => ['required', 'string', 'max:255'],
+            'shop_address'          => ['required', 'string', 'max:500'],
+            'aadhar_no'             => ['required', 'string', 'digits:12'],
+            'pan_no'                => ['required', 'string', 'regex:/[A-Z]{5}[0-9]{4}[A-Z]{1}/'],
+            'aadhar_doc'            => ['required', 'mimes:jpg,png,jpeg,pdf', 'max:2048'],
+            'pan_doc'               => ['required', 'mimes:jpg,png,jpeg,pdf', 'max:2048'],
+            'bank_proof_doc'        => ['required', 'mimes:jpg,png,jpeg,pdf', 'max:2048'],
+            'bank_name'             => ['required', 'string', 'max:255'],
+            'bank_account_number'   => ['required', 'string', 'max:20'],
+            'bank_ifsc_code'        => ['required', 'string', 'regex:/^[A-Z]{4}0[A-Z0-9]{6}$/'],
         ]);
 
         $data = [
             'slug'      => Str::uuid(),
             'main_distributor_id'   => Auth::guard('distributor')->user()->main_distributor_id,
             'distributor_id'        => Auth::guard('distributor')->id(),
-            'name'      => $request->name,
-            'email'     => $request->email,
-            'mobile'    => $request->mobile,
-            'status'    => $request->status,
-            'image'     => 'admin/avatar.png',
-            'password'  => Hash::make($request['password']),
+            'name'                  => $request->name,
+            'email'                 => $request->email,
+            'mobile'                => $request->mobile,
+            'status'                => $request->status,
+            'image'                 => 'admin/avatar.png',
+            'password'              => Hash::make($request['password']),
+            'date_of_birth'         => $request->date_of_birth,
+            'gender'                => $request->gender,
+            'address'               => $request->address,
+            'shop_name'             => $request->shop_name,
+            'shop_address'          => $request->shop_address,
+            'aadhar_no'             => $request->aadhar_no,
+            'pan_no'                => $request->pan_no,
+            'bank_name'             => $request->bank_name,
+            'bank_account_number'   => $request->bank_account_number,
+            'bank_ifsc_code'        => $request->bank_ifsc_code,
         ];
 
         $path = 'admin';
@@ -110,9 +133,20 @@ class RetailerController extends Controller
             $data['image']        = $path . '/' . $uploadImage;
         }
 
+        // Handle document uploads
+        $documentFields = ['aadhar_doc', 'pan_doc', 'bank_proof_doc'];
+        foreach ($documentFields as $field) {
+            if ($file = $request->file($field)) {
+                $destinationPath = 'public\\admin\\documents';
+                $uploadDoc = time() . '_' . $field . '_' . rand(99999, 1000000) . '.' . $file->getClientOriginalExtension();
+                Storage::disk('local')->put($destinationPath . '/' . $uploadDoc, file_get_contents($file));
+                $data[$field] = 'admin/documents/' . $uploadDoc;
+            }
+        }
+
         $data = Retailer::create($data);
         SendWelComeEmail::dispatch($data, $request->site_settings);
-        return redirect(route('distributor.retailers'))->with('success', 'Retailer Added Successfully!!');
+        return to_route('distributor.retailers')->with('success', 'Retailer Added Successfully!!');
     }
 
     public function edit($id)
@@ -123,7 +157,7 @@ class RetailerController extends Controller
             ->first();
 
         if ($retailer == null) {
-            return redirect(route('distributor.retailers'))->with('error', 'Retailer Not Found!!');
+            return to_route('distributor.retailers')->with('error', 'Retailer Not Found!!');
         }
 
         return view('distributor.retailers.edit', compact('retailer'));
@@ -135,15 +169,28 @@ class RetailerController extends Controller
             ->where('distributor_id', Auth::guard('distributor')->id())
             ->first();
         if ($retailer == null) {
-            return redirect(route('distributor.retailers'))->with('error', 'Retailer Not Found!!');
+            return to_route('distributor.retailers')->with('error', 'Retailer Not Found!!');
         }
 
         $validated = [
-            'status'    => ['required', 'integer'],
-            'name'      => ['required', 'string', 'max:255'],
-            'email'     => ['required',  new CheckUnique('retailers', $retailer['id'])],
-            'mobile'    => ['required', 'digits:10', new CheckUnique('retailers', $retailer['id']), 'regex:' . config('constant.phoneRegExp')],
-            'image'     => ['image', 'mimes:jpg,png,jpeg', 'max:2048'],
+            'status'                => ['required', 'integer'],
+            'name'                  => ['required', 'string', 'max:255'],
+            'email'                 => ['required',  new CheckUnique('retailers', $retailer['id'])],
+            'mobile'                => ['required', 'digits:10', new CheckUnique('retailers', $retailer['id']), 'regex:' . config('constant.phoneRegExp')],
+            'image'                 => ['image', 'mimes:jpg,png,jpeg', 'max:2048'],
+            'date_of_birth'         => ['required', 'date'],
+            'gender'                => ['required', 'string', 'in:male,female,other'],
+            'address'               => ['required', 'string', 'max:500'],
+            'shop_name'             => ['required', 'string', 'max:255'],
+            'shop_address'          => ['required', 'string', 'max:500'],
+            'aadhar_no'             => ['required', 'string', 'digits:12'],
+            'pan_no'                => ['required', 'string', 'regex:/[A-Z]{5}[0-9]{4}[A-Z]{1}/'],
+            'aadhar_doc'            => ['nullable', 'mimes:jpg,png,jpeg,pdf', 'max:2048'],
+            'pan_doc'               => ['nullable', 'mimes:jpg,png,jpeg,pdf', 'max:2048'],
+            'bank_proof_doc'        => ['nullable', 'mimes:jpg,png,jpeg,pdf', 'max:2048'],
+            'bank_name'             => ['required', 'string', 'max:255'],
+            'bank_account_number'   => ['required', 'string', 'max:20'],
+            'bank_ifsc_code'        => ['required', 'string', 'regex:/^[A-Z]{4}0[A-Z0-9]{6}$/'],
         ];
 
         if ($request['password']) {
@@ -152,10 +199,20 @@ class RetailerController extends Controller
 
         $request->validate($validated);
         $data = [
-            'name'      => $request->name,
-            'email'     => $request->email,
-            'mobile'    => $request->mobile,
-            'status'    => $request->status,
+            'name'                  => $request->name,
+            'email'                 => $request->email,
+            'mobile'                => $request->mobile,
+            'status'                => $request->status,
+            'date_of_birth'         => $request->date_of_birth,
+            'gender'                => $request->gender,
+            'address'               => $request->address,
+            'shop_name'             => $request->shop_name,
+            'shop_address'          => $request->shop_address,
+            'aadhar_no'             => $request->aadhar_no,
+            'pan_no'                => $request->pan_no,
+            'bank_name'             => $request->bank_name,
+            'bank_account_number'   => $request->bank_account_number,
+            'bank_ifsc_code'        => $request->bank_ifsc_code,
         ];
 
         if ($request['password']) {
@@ -170,8 +227,24 @@ class RetailerController extends Controller
             $data['image']        = $path . '/' . $uploadImage;
         }
 
+        // Handle document uploads
+        $documentFields = ['aadhar_doc', 'pan_doc', 'bank_proof_doc'];
+        foreach ($documentFields as $field) {
+            if ($file = $request->file($field)) {
+                $destinationPath = 'public\\admin\\documents';
+                $uploadDoc = time() . '_' . $field . '_' . rand(99999, 1000000) . '.' . $file->getClientOriginalExtension();
+                Storage::disk('local')->put($destinationPath . '/' . $uploadDoc, file_get_contents($file));
+                $data[$field] = 'admin/documents/' . $uploadDoc;
+
+                // Delete old document if exists
+                if ($retailer->$field && Storage::disk('local')->exists('public/' . $retailer->$field)) {
+                    Storage::disk('local')->delete('public/' . $retailer->$field);
+                }
+            }
+        }
+
         $retailer->update($data);
-        return redirect(route('distributor.retailers'))->with('success', 'Retailer Updated Successfully!!');
+        return to_route('distributor.retailers')->with('success', 'Retailer Updated Successfully!!');
     }
 
     public function delete(Request $request)
@@ -199,7 +272,7 @@ class RetailerController extends Controller
     {
         $retailer = Retailer::firstWhere('slug', $slug);
         if ($retailer == null) {
-            return redirect(route('distributor.retailers'))->with('error', 'Retailer Not Found!!');
+            return to_route('distributor.retailers')->with('error', 'Retailer Not Found!!');
         }
 
         $serviceIds = ServicesLog::select('service_id')
@@ -282,7 +355,7 @@ class RetailerController extends Controller
     {
         $user = Retailer::where('slug', $slug)->where('distributor_id', Auth::guard('distributor')->id())->first();
         if ($user == null) {
-            return redirect(route('distributor.retailers'))->with('error', 'Retailer Not Found!!');
+            return to_route('distributor.retailers')->with('error', 'Retailer Not Found!!');
         }
 
         if ($request->ajax()) {

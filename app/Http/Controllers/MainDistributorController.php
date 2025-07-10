@@ -83,22 +83,45 @@ class MainDistributorController extends Controller
     public function save(Request $request)
     {
         $validated = $request->validate([
-            'name'      => ['required', 'string', 'max:255'],
-            'status'    => ['required', 'integer'],
-            'email'     => ['required', new CheckUnique('main_distributors')],
-            'mobile'    => ['required', 'digits:10', new CheckUnique('main_distributors'),  'regex:' . config('constant.phoneRegExp')],
-            'password'  => ['required', 'string', 'min:8', 'confirmed'],
-            'image'     => ['image', 'mimes:jpg,png,jpeg', 'max:2048'],
+            'name'                  => ['required', 'string', 'max:255'],
+            'status'                => ['required', 'integer'],
+            'email'                 => ['required', new CheckUnique('main_distributors')],
+            'mobile'                => ['required', 'digits:10', new CheckUnique('main_distributors'),  'regex:' . config('constant.phoneRegExp')],
+            'password'              => ['required', 'string', 'min:8', 'confirmed'],
+            'image'                 => ['image', 'mimes:jpg,png,jpeg', 'max:2048'],
+            'date_of_birth'         => ['required', 'date'],
+            'gender'                => ['required', 'string', 'in:male,female,other'],
+            'address'               => ['required', 'string', 'max:500'],
+            'shop_name'             => ['required', 'string', 'max:255'],
+            'shop_address'          => ['required', 'string', 'max:500'],
+            'aadhar_no'             => ['required', 'string', 'digits:12'],
+            'pan_no'                => ['required', 'string', 'regex:/[A-Z]{5}[0-9]{4}[A-Z]{1}/'],
+            'aadhar_doc'            => ['required', 'mimes:jpg,png,jpeg,pdf', 'max:2048'],
+            'pan_doc'               => ['required', 'mimes:jpg,png,jpeg,pdf', 'max:2048'],
+            'bank_proof_doc'        => ['required', 'mimes:jpg,png,jpeg,pdf', 'max:2048'],
+            'bank_name'             => ['required', 'string', 'max:255'],
+            'bank_account_number'   => ['required', 'string', 'max:20'],
+            'bank_ifsc_code'        => ['required', 'string', 'regex:/^[A-Z]{4}0[A-Z0-9]{6}$/'],
         ]);
 
         $data = [
-            'slug'      => Str::uuid(),
-            'name'      => $request->name,
-            'email'     => $request->email,
-            'mobile'    => $request->mobile,
-            'status'    => $request->status,
-            'image'     => 'admin/avatar.png',
-            'password'  => Hash::make($request['password']),
+            'slug'                  => Str::uuid(),
+            'name'                  => $request->name,
+            'email'                 => $request->email,
+            'mobile'                => $request->mobile,
+            'status'                => $request->status,
+            'image'                 => 'admin/avatar.png',
+            'password'              => Hash::make($request['password']),
+            'date_of_birth'         => $request->date_of_birth,
+            'gender'                => $request->gender,
+            'address'               => $request->address,
+            'shop_name'             => $request->shop_name,
+            'shop_address'          => $request->shop_address,
+            'aadhar_no'             => $request->aadhar_no,
+            'pan_no'                => $request->pan_no,
+            'bank_name'             => $request->bank_name,
+            'bank_account_number'   => $request->bank_account_number,
+            'bank_ifsc_code'        => $request->bank_ifsc_code,
         ];
 
         $path = 'admin';
@@ -109,16 +132,27 @@ class MainDistributorController extends Controller
             $data['image']        = $path . '/' . $uploadImage;
         }
 
+        // Handle document uploads
+        $documentFields = ['aadhar_doc', 'pan_doc', 'bank_proof_doc'];
+        foreach ($documentFields as $field) {
+            if ($file = $request->file($field)) {
+                $destinationPath = 'public\\admin\\documents';
+                $uploadDoc = time() . '_' . $field . '_' . rand(99999, 1000000) . '.' . $file->getClientOriginalExtension();
+                Storage::disk('local')->put($destinationPath . '/' . $uploadDoc, file_get_contents($file));
+                $data[$field] = 'admin/documents/' . $uploadDoc;
+            }
+        }
+
         $data = MainDistributor::create($data);
         SendWelComeEmail::dispatch($data, $request->site_settings);
-        return redirect(route('main_distributors'))->with('success', 'Main Distributor Added Successfully!!');
+        return to_route('main_distributors')->with('success', 'Main Distributor Added Successfully!!');
     }
 
     public function edit($id)
     {
         $main_distributor = MainDistributor::firstWhere('slug', $id);
         if ($main_distributor == null) {
-            return redirect(route('main_distributors'))->with('error', 'Main Distributor Not Found!!');
+            return to_route('main_distributors')->with('error', 'Main Distributor Not Found!!');
         }
         return view('main_distributors.edit', compact(['main_distributor']));
     }
@@ -127,15 +161,28 @@ class MainDistributorController extends Controller
     {
         $main_distributor = MainDistributor::firstWhere('id', $id);
         if ($main_distributor == null) {
-            return redirect(route('main_distributors'))->with('error', 'Main Distributor Not Found!!');
+            return to_route('main_distributors')->with('error', 'Main Distributor Not Found!!');
         }
 
         $validated = [
-            'status'    => ['required', 'integer'],
-            'name'      => ['required', 'string', 'max:255'],
-            'email'     => ['required',  new CheckUnique('main_distributors', $main_distributor['id'])],
-            'mobile'    => ['required', 'digits:10', new CheckUnique('main_distributors', $main_distributor['id']), 'regex:' . config('constant.phoneRegExp')],
-            'image'     => ['image', 'mimes:jpg,png,jpeg', 'max:2048'],
+            'status'                => ['required', 'integer'],
+            'name'                  => ['required', 'string', 'max:255'],
+            'email'                 => ['required',  new CheckUnique('main_distributors', $main_distributor['id'])],
+            'mobile'                => ['required', 'digits:10', new CheckUnique('main_distributors', $main_distributor['id']), 'regex:' . config('constant.phoneRegExp')],
+            'image'                 => ['image', 'mimes:jpg,png,jpeg', 'max:2048'],
+            'date_of_birth'         => ['required', 'date'],
+            'gender'                => ['required', 'string', 'in:male,female,other'],
+            'address'               => ['required', 'string', 'max:500'],
+            'shop_name'             => ['required', 'string', 'max:255'],
+            'shop_address'          => ['required', 'string', 'max:500'],
+            'aadhar_no'             => ['required', 'string', 'digits:12'],
+            'pan_no'                => ['required', 'string', 'regex:/[A-Z]{5}[0-9]{4}[A-Z]{1}/'],
+            'aadhar_doc'            => ['nullable', 'mimes:jpg,png,jpeg,pdf', 'max:2048'],
+            'pan_doc'               => ['nullable', 'mimes:jpg,png,jpeg,pdf', 'max:2048'],
+            'bank_proof_doc'        => ['nullable', 'mimes:jpg,png,jpeg,pdf', 'max:2048'],
+            'bank_name'             => ['required', 'string', 'max:255'],
+            'bank_account_number'   => ['required', 'string', 'max:20'],
+            'bank_ifsc_code'        => ['required', 'string', 'regex:/^[A-Z]{4}0[A-Z0-9]{6}$/'],
         ];
 
         if ($request['password']) {
@@ -144,10 +191,20 @@ class MainDistributorController extends Controller
 
         $request->validate($validated);
         $data = [
-            'name'      => $request->name,
-            'email'     => $request->email,
-            'mobile'    => $request->mobile,
-            'status'    => $request->status,
+            'name'                  => $request->name,
+            'email'                 => $request->email,
+            'mobile'                => $request->mobile,
+            'status'                => $request->status,
+            'date_of_birth'         => $request->date_of_birth,
+            'gender'                => $request->gender,
+            'address'               => $request->address,
+            'shop_name'             => $request->shop_name,
+            'shop_address'          => $request->shop_address,
+            'aadhar_no'             => $request->aadhar_no,
+            'pan_no'                => $request->pan_no,
+            'bank_name'             => $request->bank_name,
+            'bank_account_number'   => $request->bank_account_number,
+            'bank_ifsc_code'        => $request->bank_ifsc_code,
         ];
 
         if ($request['password']) {
@@ -162,8 +219,24 @@ class MainDistributorController extends Controller
             $data['image']        = $path . '/' . $uploadImage;
         }
 
+        // Handle document uploads
+        $documentFields = ['aadhar_doc', 'pan_doc', 'bank_proof_doc'];
+        foreach ($documentFields as $field) {
+            if ($file = $request->file($field)) {
+                $destinationPath = 'public\\admin\\documents';
+                $uploadDoc = time() . '_' . $field . '_' . rand(99999, 1000000) . '.' . $file->getClientOriginalExtension();
+                Storage::disk('local')->put($destinationPath . '/' . $uploadDoc, file_get_contents($file));
+                $data[$field] = 'admin/documents/' . $uploadDoc;
+
+                // Delete old document if exists
+                if ($main_distributor->$field && Storage::disk('local')->exists('public/' . $main_distributor->$field)) {
+                    Storage::disk('local')->delete('public/' . $main_distributor->$field);
+                }
+            }
+        }
+
         $main_distributor->update($data);
-        return redirect(route('main_distributors'))->with('success', 'Main Distributor Updated Successfully!!');
+        return to_route('main_distributors')->with('success', 'Main Distributor Updated Successfully!!');
     }
 
     public function delete(Request $request)
@@ -189,7 +262,7 @@ class MainDistributorController extends Controller
     {
         $main_distributor = MainDistributor::firstWhere('slug', $slug);
         if ($main_distributor == null) {
-            return redirect(route('main_distributors'))->with('error', 'Main Distributor Not Found!!');
+            return to_route('main_distributors')->with('error', 'Main Distributor Not Found!!');
         }
 
         $services = Services::select('services.id', 'services.name', 'assign_date')
@@ -236,7 +309,7 @@ class MainDistributorController extends Controller
     {
         $user = MainDistributor::firstWhere('slug', $slug);
         if ($user == null) {
-            return redirect(route('main_distributors'))->with('error', 'Main Distributor Not Found!!');
+            return to_route('main_distributors')->with('error', 'Main Distributor Not Found!!');
         }
 
         if ($request->ajax()) {

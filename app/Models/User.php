@@ -30,6 +30,19 @@ class User extends Authenticatable
         'status',
         'image',
         'password',
+        'date_of_birth',
+        'gender',
+        'address',
+        'shop_name',
+        'shop_address',
+        'aadhar_no',
+        'pan_no',
+        'aadhar_doc',
+        'pan_doc',
+        'bank_proof_doc',
+        'bank_name',
+        'bank_account_number',
+        'bank_ifsc_code',
     ];
 
     /**
