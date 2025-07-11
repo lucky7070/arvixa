@@ -20,7 +20,7 @@ class BillPay
         if ($response->json('records.0.status') == 1) {
             return $response->json('records.0');
         } else {
-            throw new Error($response->json('records.0.desc', "No Pending bill..!!"));
+            throw new Error($response->json('records.0.desc') ?? "No Pending bill..!!");
         }
     }
 
@@ -37,7 +37,7 @@ class BillPay
         if ($response->json('records.0.status') == 1) {
             return $response->json('records.0');
         } else {
-            throw new Error($response->json('records.0.desc', "No Pending bill..!!"));
+            throw new Error($response->json('records.0.desc') ?? "No Pending bill..!!");
         }
     }
 
