@@ -287,7 +287,7 @@
                                             <div>
                                                 <p class="text-white mb-0 fs-6">Balance</p>
                                                 <h2 class="text-white mb-0 fw-bold">₹
-                                                    {{ auth('retailer')->user()->user_balance }}
+                                                    {{ round(auth('retailer')->user()->user_balance, 2) }}
                                                 </h2>
                                             </div>
                                         </div>

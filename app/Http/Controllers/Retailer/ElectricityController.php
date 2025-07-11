@@ -89,35 +89,43 @@ class ElectricityController extends Controller
                 "data"      => $err
             ]);
         } else {
-            $provider = Provider::where('id', $request->operator)->first();
-            if (!$provider) {
-                return response()->json(['error' => 'Invalid provider selected.']);
-            }
+            try {
+                $provider = Provider::where('id', $request->operator)->first();
+                if (!$provider) {
+                    return response()->json(['error' => 'Invalid provider selected.']);
+                }
 
-            $record = BillPay::getElectricityBill($request->consumer_no, $provider->code);
-            if (!empty($record['CustomerName'])) {
-                $fetch =   FetchBill::create([
-                    'transaction_id'    => (string) Str::uuid(),
-                    'service_id'        => $this->service_id,
-                    'user_id'           => $this->user_id,
-                    'board_id'          => $request->operator,
-                    'consumer_no'       => $request->consumer_no,
-                    'consumer_name'     => @$record['CustomerName'],
-                    'bill_no'           => @$record['BillNumber'] ?? '',
-                    'bill_amount'       => @$record['Billamount'] ?? '',
-                    'bu_code'           => $request->input('bu_code', ''),
-                    'due_date'          => Carbon::parse($record['Duedate'])->format('Y-m-d')
-                ]);
+                $record = BillPay::getElectricityBill($request->consumer_no, $provider->code);
+                if (!empty($record['CustomerName'])) {
+                    $fetch =   FetchBill::create([
+                        'transaction_id'    => (string) Str::uuid(),
+                        'service_id'        => $this->service_id,
+                        'user_id'           => $this->user_id,
+                        'board_id'          => $request->operator,
+                        'consumer_no'       => $request->consumer_no,
+                        'consumer_name'     => @$record['CustomerName'],
+                        'bill_no'           => @$record['BillNumber'] ?? '',
+                        'bill_amount'       => @$record['Billamount'] ?? '',
+                        'bu_code'           => $request->input('bu_code', ''),
+                        'due_date'          => Carbon::parse($record['Duedate'])->format('Y-m-d')
+                    ]);
 
-                return response()->json([
-                    'status'    => true,
-                    'message'   => 'Bill details fetched successfully.',
-                    'data'      => $fetch
-                ]);
-            } else {
+                    return response()->json([
+                        'status'    => true,
+                        'message'   => 'Bill details fetched successfully.',
+                        'data'      => $fetch
+                    ]);
+                } else {
+                    return response()->json([
+                        'status'    => false,
+                        'message'   => 'No bill amount pending.',
+                        'data'      => []
+                    ]);
+                }
+            } catch (\Throwable $th) {
                 return response()->json([
                     'status'    => false,
-                    'message'   => 'No bill amount pending.',
+                    'message'   => $th->getMessage(),
                     'data'      => []
                 ]);
             }

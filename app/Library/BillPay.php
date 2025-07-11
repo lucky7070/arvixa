@@ -10,44 +10,39 @@ class BillPay
 {
     public static function getElectricityBill(string $consumer_no, string $provider,)
     {
-        try {
+        $response = Http::get('https://www.mplan.in/api/electricinfo.php', [
+            'apikey'   => config('constant.mplan_key'),
+            'offer'    => 'roffer',
+            'tel'      => $consumer_no,
+            'operator' => $provider,
+        ]);
 
-            $response = Http::get('https://www.mplan.in/api/electricinfo.php', [
-                'apikey'   => config('constant.mplan_key'),
-                'offer'    => 'roffer',
-                'tel'      => $consumer_no,
-                'operator' => $provider,
-            ]);
-
-            $record = $response->json('records.0', []);
-            return $record;
-        } catch (\Throwable $th) {
-            return [];
+        if ($response->json('records.0.status') == 1) {
+            return $response->json('records.0');
+        } else {
+            throw new Error($response->json('records.0.desc', "No Pending bill..!!"));
         }
     }
 
     public static function getWaterBill(string $consumer_no, string $provider,)
     {
-        try {
 
-            $response = Http::get('https://www.mplan.in/api/water.php', [
-                'apikey'   => config('constant.mplan_key'),
-                'offer'    => 'roffer',
-                'tel'      => $consumer_no,
-                'operator' => $provider,
-            ]);
+        $response = Http::get('https://www.mplan.in/api/water.php', [
+            'apikey'   => config('constant.mplan_key'),
+            'offer'    => 'roffer',
+            'tel'      => $consumer_no,
+            'operator' => $provider,
+        ]);
 
-            $record = $response->json('records.0', []);
-
-            return $record;
-        } catch (\Throwable $th) {
-            return [];
+        if ($response->json('records.0.status') == 1) {
+            return $response->json('records.0');
+        } else {
+            throw new Error($response->json('records.0.desc', "No Pending bill..!!"));
         }
     }
 
     public static function getLicPremium(string $consumer_no, string $provider, $email, $dob)
     {
-        return ['userName' => null, 'billAmount' => null];
         $response = Http::withOptions(['verify' => false])->get('https://connect.ekychub.in/v3/verification/bill_fetch', [
             'username'      => config('constant.ekychub_username'),
             'token'         => config('constant.ekychub_key'),
