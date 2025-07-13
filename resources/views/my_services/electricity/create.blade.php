@@ -103,7 +103,6 @@
                                 <th>Transaction Id</th>
                                 <th>Consumer Name</th>
                                 <th>Consumer No</th>
-                                <th>Bill No</th>
                                 <th>Payment Date</th>
                                 <th>Bill Amount</th>
                                 <th>Commission</th>
@@ -121,7 +120,6 @@
                                 </td>
                                 <td><b>{{ $row->consumer_name }}</b></td>
                                 <td>{{ $row->consumer_no }}</td>
-                                <td>{{ $row->bill_no ?? '--' }}</td>
                                 <td>{{ $row->created_at->format('d F, Y h:i A') }}</td>
                                 <td><b class="text-primary">₹ {{ $row->bill_amount }}</b></td>
                                 <td><b class="text-success">₹ {{ $row->commission }}</b></td>

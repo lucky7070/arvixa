@@ -63,6 +63,9 @@ class ElectricityController extends Controller
                 ->editColumn('consumer_no', function ($row) {
                     return '<div class="fw-bold">KNo : ' . $row['consumer_no'] . '</div><div  class="text-success fw-bold small">Due Date : ' . date('d F, Y', strtotime($row['due_date'])) . '</div><div  class="text-primary fw-bold small">Bill Amount : ₹' . $row['bill_amount'] . '</div>';
                 })
+                ->addColumn('consumer_name', function ($row) {
+                    return '<div class="fw-bold">' . (!empty($row['consumer_name']) ? $row['consumer_name'] : 'N/A') . '</div>';
+                })
                 ->editColumn('commission', function ($row) {
                     return  '<div class="text-success small fw-semibold">Commission : ₹ ' . $row['commission'] . ' </div><div class="text-primary small fw-semibold">TDS : ₹ ' . $row['tds'] . ' </div>';
                 })
@@ -85,7 +88,7 @@ class ElectricityController extends Controller
                 ->editColumn('bu_code', function ($row) {
                     return  $row['bu_code'] ?? '--';
                 })
-                ->rawColumns(['transaction_id', 'provider_name', 'consumer_no', 'commission', 'status', 'action', 'retailer_name'])
+                ->rawColumns(['transaction_id', 'provider_name', 'consumer_no', 'commission', 'status', 'action', 'retailer_name', 'consumer_name'])
                 ->make(true);
         }
 
@@ -129,6 +132,9 @@ class ElectricityController extends Controller
                 ->editColumn('consumer_no', function ($row) {
                     return '<div class="fw-bold">KNo : ' . $row['consumer_no'] . '</div><div  class="text-success fw-bold small">Due Date : ' . date('d F, Y', strtotime($row['due_date'])) . '</div><div  class="text-primary fw-bold small">Bill Amount : ₹' . $row['bill_amount'] . '</div>';
                 })
+                ->addColumn('consumer_name', function ($row) {
+                    return '<div class="fw-bold">' . (!empty($row['consumer_name']) ? $row['consumer_name'] : 'N/A') . '</div>';
+                })
                 ->editColumn('commission', function ($row) {
                     return  '<div class="text-success small fw-semibold">Commission : ₹ ' . $row['commission'] . ' </div><div class="text-primary small fw-semibold">TDS : ₹ ' . $row['tds'] . ' </div>';
                 })
@@ -148,7 +154,7 @@ class ElectricityController extends Controller
                 ->addColumn('action', function ($row) {
                     return '<button id="btndefault" type="button" class="btn btn-outline-dark action" data-all="' . htmlspecialchars(json_encode($row))  . '">Action</button>';
                 })
-                ->rawColumns(['transaction_id', 'provider_name', 'consumer_no', 'commission', 'status', 'action', 'retailer_name'])
+                ->rawColumns(['transaction_id', 'provider_name', 'consumer_no', 'commission', 'status', 'action', 'retailer_name', 'consumer_name'])
                 ->make(true);
         }
 
@@ -192,6 +198,9 @@ class ElectricityController extends Controller
                 ->editColumn('consumer_no', function ($row) {
                     return '<div class="fw-bold">KNo : ' . $row['consumer_no'] . '</div><div  class="text-success fw-bold small">Due Date : ' . date('d F, Y', strtotime($row['due_date'])) . '</div><div  class="text-primary fw-bold small">Bill Amount : ₹' . $row['bill_amount'] . '</div>';
                 })
+                ->addColumn('consumer_name', function ($row) {
+                    return '<div class="fw-bold">' . (!empty($row['consumer_name']) ? $row['consumer_name'] : 'N/A') . '</div>';
+                })
                 ->editColumn('commission', function ($row) {
                     return  '<div class="text-success small fw-semibold">Commission : ₹ ' . $row['commission'] . ' </div><div class="text-primary small fw-semibold">TDS : ₹ ' . $row['tds'] . ' </div>';
                 })
@@ -211,7 +220,7 @@ class ElectricityController extends Controller
                 ->addColumn('action', function ($row) {
                     return '<button id="btndefault" type="button" class="btn btn-outline-dark action" data-all="' . htmlspecialchars(json_encode($row))  . '">Action</button>';
                 })
-                ->rawColumns(['transaction_id', 'provider_name', 'consumer_no', 'commission', 'status', 'action', 'retailer_name'])
+                ->rawColumns(['transaction_id', 'provider_name', 'consumer_no', 'commission', 'status', 'action', 'retailer_name', 'consumer_name'])
                 ->make(true);
         }
 
@@ -255,6 +264,9 @@ class ElectricityController extends Controller
                 ->editColumn('consumer_no', function ($row) {
                     return '<div class="fw-bold">KNo : ' . $row['consumer_no'] . '</div><div  class="text-success fw-bold small">Due Date : ' . date('d F, Y', strtotime($row['due_date'])) . '</div><div  class="text-primary fw-bold small">Bill Amount : ₹' . $row['bill_amount'] . '</div>';
                 })
+                ->addColumn('consumer_name', function ($row) {
+                    return '<div class="fw-bold">' . (!empty($row['consumer_name']) ? $row['consumer_name'] : 'N/A') . '</div><div class="text-success fw-bold small">Email : ' . (!empty($row['bill_no']) ? $row['bill_no'] : 'N/A') . '</div><div  class="text-primary fw-bold small">DOB : ' . (!empty($row['bu_code']) ? $row['bu_code'] : 'N/A') . '</div>';
+                })
                 ->editColumn('commission', function ($row) {
                     return  '<div class="text-success small fw-semibold">Commission : ₹ ' . $row['commission'] . ' </div><div class="text-primary small fw-semibold">TDS : ₹ ' . $row['tds'] . ' </div>';
                 })
@@ -274,7 +286,7 @@ class ElectricityController extends Controller
                 ->addColumn('action', function ($row) {
                     return '<button id="btndefault" type="button" class="btn btn-outline-dark action" data-all="' . htmlspecialchars(json_encode($row))  . '">Action</button>';
                 })
-                ->rawColumns(['transaction_id', 'provider_name', 'consumer_no', 'commission', 'status', 'action', 'retailer_name'])
+                ->rawColumns(['transaction_id', 'provider_name', 'consumer_no', 'commission', 'status', 'action', 'retailer_name', 'consumer_name'])
                 ->make(true);
         }
 
@@ -288,6 +300,7 @@ class ElectricityController extends Controller
         $query->where('bills.bill_type', $type);
         $query->join('retailers', 'retailers.id', 'bills.user_id');
         $query->join('providers', 'providers.id', 'bills.board_id');
+        $query->latest('bills.created_at');
 
         if (request('start_date') && request('end_date')) {
             $startDate = Carbon::parse(request('start_date'));
@@ -322,16 +335,28 @@ class ElectricityController extends Controller
         $sheet->setCellValue('E1', 'Provider');
         $sheet->setCellValue('F1', 'Bill No/K.No');
         $sheet->setCellValue('G1', 'Consumer Name');
-        $sheet->setCellValue('H1', 'Due Date');
-        $sheet->setCellValue('I1', 'Bill Amount');
-        $sheet->setCellValue('J1', 'Profit');
-        $sheet->setCellValue('K1', 'TDS');
-        $sheet->setCellValue('L1', 'Status ');
-        $sheet->setCellValue('M1', 'Remark');
+
+        if ($type === 'lic') {
+            $sheet->setCellValue('H1', 'Email');
+            $sheet->setCellValue('I1', 'Date of Birth');
+            $sheet->setCellValue('J1', 'Due Date');
+            $sheet->setCellValue('K1', 'Bill Amount');
+            $sheet->setCellValue('L1', 'Profit');
+            $sheet->setCellValue('M1', 'TDS');
+            $sheet->setCellValue('N1', 'Status ');
+            $sheet->setCellValue('O1', 'Remark');
+        } else {
+            $sheet->setCellValue('H1', 'Due Date');
+            $sheet->setCellValue('I1', 'Bill Amount');
+            $sheet->setCellValue('J1', 'Profit');
+            $sheet->setCellValue('K1', 'TDS');
+            $sheet->setCellValue('L1', 'Status ');
+            $sheet->setCellValue('M1', 'Remark');
+        }
 
         $rows = 2;
         foreach ($query->get() as $row) {
-            $bu_code = $row->bu_code ? " (BU : $row->bu_code)" : '';
+            $bu_code = ($type === 'electricity' && $row->bu_code) ? " (BU : $row->bu_code)" : '';
 
             $sheet->setCellValue('A' . $rows, $row->transaction_id);
             $sheet->setCellValue('B' . $rows, Date::PHPToExcel($row->created_at));
@@ -340,12 +365,25 @@ class ElectricityController extends Controller
             $sheet->setCellValue('E' . $rows, $row->provider_name . $bu_code);
             $sheet->setCellValue('F' . $rows, $row->consumer_no);
             $sheet->setCellValue('G' . $rows, $row->consumer_name);
-            $sheet->setCellValue('H' . $rows, Date::PHPToExcel($row->due_date));
-            $sheet->setCellValue('I' . $rows, $row->bill_amount);
-            $sheet->setCellValue('J' . $rows, $row->commission);
-            $sheet->setCellValue('K' . $rows, $row->tds);
-            $sheet->setCellValue('L' . $rows, $row->status == 1 ? 'Success' : ($row->status == 2 ? "Cancelled" : 'Pending'));
-            $sheet->setCellValue('M' . $rows, $row->remark ?? '--');
+
+            if ($type === 'lic') {
+                $sheet->setCellValue('H' . $rows, empty($row->bill_no) ? '--' : $row->bill_no);
+                $sheet->setCellValue('I' . $rows, $row->bu_code ?? '--');
+                $sheet->setCellValue('J' . $rows, Date::PHPToExcel($row->due_date));
+                $sheet->setCellValue('K' . $rows, $row->bill_amount);
+                $sheet->setCellValue('L' . $rows, $row->commission);
+                $sheet->setCellValue('M' . $rows, $row->tds);
+                $sheet->setCellValue('N' . $rows, $row->status == 1 ? 'Success' : ($row->status == 2 ? "Cancelled" : 'Pending'));
+                $sheet->setCellValue('O' . $rows, $row->remark ?? '--');
+            } else {
+                $sheet->setCellValue('H' . $rows, Date::PHPToExcel($row->due_date));
+                $sheet->setCellValue('I' . $rows, $row->bill_amount);
+                $sheet->setCellValue('J' . $rows, $row->commission);
+                $sheet->setCellValue('K' . $rows, $row->tds);
+                $sheet->setCellValue('L' . $rows, $row->status == 1 ? 'Success' : ($row->status == 2 ? "Cancelled" : 'Pending'));
+                $sheet->setCellValue('M' . $rows, $row->remark ?? '--');
+            }
+
             $rows++;
         }
 
@@ -359,11 +397,19 @@ class ElectricityController extends Controller
             $sheet->getColumnDimension($column->getColumnIndex())->setAutoSize(true);
         }
 
-        $sheet->getStyle('A1:M' . $rows)->getAlignment()->setHorizontal('center');
-        $sheet->getStyle('D1:F' . $rows)->getNumberFormat()->setFormatCode('#');
-        $sheet->getStyle('I1:K' . $rows)->getNumberFormat()->setFormatCode('"₹" #,##0.00_-');
-        $sheet->getStyle('B1:B' . $rows)->getNumberFormat()->setFormatCode(NumberFormat::FORMAT_DATE_DDMMYYYY);
-        $sheet->getStyle('H1:H' . $rows)->getNumberFormat()->setFormatCode(NumberFormat::FORMAT_DATE_DDMMYYYY);
+        if ($type === 'lic') {
+            $sheet->getStyle('A1:O' . $rows)->getAlignment()->setHorizontal('center');
+            $sheet->getStyle('D1:F' . $rows)->getNumberFormat()->setFormatCode('#');
+            $sheet->getStyle('K1:M' . $rows)->getNumberFormat()->setFormatCode('"₹" #,##0.00_-');
+            $sheet->getStyle('B1:B' . $rows)->getNumberFormat()->setFormatCode(NumberFormat::FORMAT_DATE_DDMMYYYY);
+            $sheet->getStyle('J1:J' . $rows)->getNumberFormat()->setFormatCode(NumberFormat::FORMAT_DATE_DDMMYYYY);
+        } else {
+            $sheet->getStyle('A1:M' . $rows)->getAlignment()->setHorizontal('center');
+            $sheet->getStyle('D1:F' . $rows)->getNumberFormat()->setFormatCode('#');
+            $sheet->getStyle('I1:K' . $rows)->getNumberFormat()->setFormatCode('"₹" #,##0.00_-');
+            $sheet->getStyle('B1:B' . $rows)->getNumberFormat()->setFormatCode(NumberFormat::FORMAT_DATE_DDMMYYYY);
+            $sheet->getStyle('H1:H' . $rows)->getNumberFormat()->setFormatCode(NumberFormat::FORMAT_DATE_DDMMYYYY);
+        }
 
         $spreadsheet->setActiveSheetIndex(0);
         $fileName = ucfirst($type) . " Bill Export.xlsx";

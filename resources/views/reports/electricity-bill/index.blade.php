@@ -71,13 +71,18 @@
                     <tr>
                         <th>Transaction Id</th>
                         <th>Retailer Name</th>
-                        <th></th>
                         <th>Provider Name</th>
                         <th>BU Code</th>
                         <th>Bill Details</th>
+                        <th>Consumer Name</th>
                         <th>Profit & TDS</th>
                         <th>Status</th>
                         <th>Action</th>
+                        <th></th>
+                        <th></th>
+                        <th></th>
+                        <th></th>
+                        <th></th>
                     </tr>
                 </thead>
                 <tbody></tbody>
@@ -180,6 +185,10 @@
                     name: 'consumer_no',
                 },
                 {
+                    data: 'consumer_name',
+                    name: 'bills.consumer_name',
+                },
+                {
                     data: 'commission',
                     name: 'commission',
                 },
@@ -192,6 +201,31 @@
                     name: 'action',
                     orderable: false,
                     searchable: false
+                },
+                {
+                    data: 'retailer_userId',
+                    name: 'retailers.mobile',
+                    visible: false
+                },
+                {
+                    data: 'transaction_id',
+                    name: 'bills.transaction_id',
+                    visible: false
+                },
+                {
+                    data: 'remark',
+                    name: 'bills.remark',
+                    visible: false
+                },
+                {
+                    data: 'bill_no',
+                    name: 'bills.bill_no',
+                    visible: false
+                },
+                {
+                    data: 'bu_code',
+                    name: 'bills.bu_code',
+                    visible: false
                 },
             ]
         });

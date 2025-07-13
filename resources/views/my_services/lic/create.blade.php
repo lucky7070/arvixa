@@ -67,13 +67,13 @@
                     <div class="row mb-3">
                         <div class="col-md-3 mb-3">
                             <label for="consumer_name">Policy Holder Name</label>
-                            <input type="text" class="form-control text-dark consumer-name" name="consumer_name" >
+                            <input type="text" class="form-control text-dark consumer-name" name="consumer_name">
                             <input type="hidden" class="" name="transaction_id" id="transaction-id">
                             @csrf
                         </div>
                         <div class="col-md-3 mb-3">
                             <label for="bill_amount">Amount</label>
-                            <input type="number" class="form-control text-dark bill-amount" name="bill_amount" >
+                            <input type="number" class="form-control text-dark bill-amount" name="bill_amount">
                         </div>
                         <div class="col-md-12">
                             <button type="submit" class="btn btn-primary px-4">Pay Bill</button>
@@ -100,6 +100,7 @@
                                 <th>Consumer Name</th>
                                 <th>Consumer No</th>
                                 <th>Email</th>
+                                <th>DOB</th>
                                 <th>Payment Date</th>
                                 <th>Bill Amount</th>
                                 <th>Commission</th>
@@ -116,7 +117,8 @@
                                 </td>
                                 <td><b>{{ $row->consumer_name }}</b></td>
                                 <td>{{ $row->consumer_no }}</td>
-                                <td>{{ $row->bill_no ?? '--' }}</td>
+                                <td>{{ empty($row->bill_no) ? '--' : $row->bill_no }}</td>
+                                <td>{{ empty($row->bu_code) ? '--' : $row->bu_code }}</td>
                                 <td>{{ $row->created_at->format('d F, Y h:i A') }}</td>
                                 <td><b class="text-primary">₹ {{ $row->bill_amount }}</b></td>
                                 <td><b class="text-success">₹ {{ $row->commission }}</b></td>

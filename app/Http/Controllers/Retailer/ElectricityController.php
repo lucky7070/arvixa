@@ -272,10 +272,10 @@ class ElectricityController extends Controller
         $sheet->setTitle('Electricity Bill List');
 
         $sheet->setCellValue('A1', 'Transaction Id');
-        $sheet->setCellValue('B1', 'Customer Name');
-        $sheet->setCellValue('C1', 'Customer No');
-        $sheet->setCellValue('D1', 'Board');
-        $sheet->setCellValue('E1', 'Bill No');
+        $sheet->setCellValue('B1', 'Provider Name');
+        $sheet->setCellValue('C1', 'BU Code');
+        $sheet->setCellValue('D1', 'Customer Name');
+        $sheet->setCellValue('E1', 'Customer No');
         $sheet->setCellValue('F1', 'Bill Amount');
         $sheet->setCellValue('G1', 'Commission Amount');
         $sheet->setCellValue('H1', 'TDS Amount');
@@ -283,16 +283,15 @@ class ElectricityController extends Controller
         $sheet->setCellValue('J1', 'Created Date');
         $sheet->setCellValue('K1', 'Status');
         $sheet->setCellValue('L1', 'Is Refunded');
-        $sheet->setCellValue('M1', 'Provider Name');
-        $sheet->setCellValue('N1', 'BU Code');
+
 
         $rows = 2;
         foreach ($data->get() as $row) {
             $sheet->setCellValue('A' . $rows, $row->transaction_id);
-            $sheet->setCellValue('B' . $rows, trim($row->consumer_name));
-            $sheet->setCellValue('C' . $rows, $row->consumer_no);
-            $sheet->setCellValue('D' . $rows, $row->board_id);
-            $sheet->setCellValue('E' . $rows, $row->bill_no);
+            $sheet->setCellValue('B' . $rows, $row->provider_name);
+            $sheet->setCellValue('C' . $rows, $row->bu_code ?? '--');
+            $sheet->setCellValue('D' . $rows, trim($row->consumer_name));
+            $sheet->setCellValue('E' . $rows, $row->consumer_no);
             $sheet->setCellValue('F' . $rows, $row->bill_amount);
             $sheet->setCellValue('G' . $rows, $row->commission);
             $sheet->setCellValue('H' . $rows, $row->tds);
@@ -300,8 +299,6 @@ class ElectricityController extends Controller
             $sheet->setCellValue('J' . $rows, Date::PHPToExcel($row->created_at));
             $sheet->setCellValue('K' . $rows, $row->status == 1 ? 'Paid' : 'Pending');
             $sheet->setCellValue('L' . $rows, $row->is_refunded == 1 ? 'Yes' : 'No');
-            $sheet->setCellValue('M' . $rows, $row->provider_name);
-            $sheet->setCellValue('N' . $rows, $row->bu_code ?? '--');
             $rows++;
         }
 
@@ -315,8 +312,8 @@ class ElectricityController extends Controller
             $sheet->getColumnDimension($column->getColumnIndex())->setAutoSize(true);
         }
 
-        $sheet->getStyle('A1:N' . $rows)->getAlignment()->setHorizontal('center');
-        $sheet->getStyle('C1:E' . $rows)->getNumberFormat()->setFormatCode('#');
+        $sheet->getStyle('A1:L' . $rows)->getAlignment()->setHorizontal('center');
+        $sheet->getStyle('E1:E' . $rows)->getNumberFormat()->setFormatCode('#');
         $sheet->getStyle('F1:H' . $rows)->getNumberFormat()->setFormatCode('"₹" #,##0.00_-');
         $sheet->getStyle('I1:J' . $rows)->getNumberFormat()->setFormatCode(NumberFormat::FORMAT_DATE_DDMMYYYY);
 

@@ -133,7 +133,8 @@ class LicController extends Controller
                     'board_id'          => $request->operator,
                     'consumer_no'       => $request->consumer_no,
                     'consumer_name'     => '',
-                    'bill_no'           => '',
+                    'bill_no'           => $request->email,
+                    'bu_code'           => $request->dob,
                     'bill_amount'       => null,
                     'due_date'          => now(),
                 ]);
@@ -216,12 +217,12 @@ class LicController extends Controller
             'board_id'                      => $data->board_id,
             'consumer_no'                   => $data->consumer_no,
             'consumer_name'                 => $consumer_name,
-            'bill_no'                       => $data->bill_no,
             'bill_amount'                   => $amountDue,
             'bill_type'                     => 'lic',
             'due_date'                      => $data->due_date,
             'commission'                    => $commission,
             'tds'                           => $tds_amount,
+            'bill_no'                       => $data->bill_no,
             'bu_code'                       => $data->bu_code,
             'status'                        => 0,
             'commission_distributor'        => $commission_distributor,
@@ -303,8 +304,8 @@ class LicController extends Controller
         $sheet->setCellValue('A1', 'Transaction Id');
         $sheet->setCellValue('B1', 'Customer Name');
         $sheet->setCellValue('C1', 'Customer No');
-        $sheet->setCellValue('D1', 'Board');
-        $sheet->setCellValue('E1', 'Bill No');
+        $sheet->setCellValue('D1', 'Email');
+        $sheet->setCellValue('E1', 'DOB');
         $sheet->setCellValue('F1', 'Bill Amount');
         $sheet->setCellValue('G1', 'Commission Amount');
         $sheet->setCellValue('H1', 'TDS Amount');
@@ -319,8 +320,8 @@ class LicController extends Controller
             $sheet->setCellValue('A' . $rows, $row->transaction_id);
             $sheet->setCellValue('B' . $rows, trim($row->consumer_name));
             $sheet->setCellValue('C' . $rows, $row->consumer_no);
-            $sheet->setCellValue('D' . $rows, $row->board_id);
-            $sheet->setCellValue('E' . $rows, $row->bill_no);
+            $sheet->setCellValue('D' . $rows, $row->bill_no);
+            $sheet->setCellValue('E' . $rows, $row->bu_code);
             $sheet->setCellValue('F' . $rows, $row->bill_amount);
             $sheet->setCellValue('G' . $rows, $row->commission);
             $sheet->setCellValue('H' . $rows, $row->tds);

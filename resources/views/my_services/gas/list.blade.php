@@ -29,6 +29,10 @@
                         <th>Profit & TDS</th>
                         <th>Status</th>
                         <th>Action</th>
+                        <th></th>
+                        <th></th>
+                        <th></th>
+                        <th></th>
                     </tr>
                 </thead>
                 <tbody></tbody>
@@ -74,6 +78,26 @@
                     name: 'action',
                     orderable: false,
                     searchable: false
+                },
+                {
+                    data: 'transaction_id',
+                    name: 'bills.transaction_id',
+                    visible: false
+                },
+                {
+                    data: 'remark',
+                    name: 'bills.remark',
+                    visible: false
+                },
+                {
+                    data: 'bill_no',
+                    name: 'bills.bill_no',
+                    visible: false
+                },
+                {
+                    data: 'bu_code',
+                    name: 'bills.bu_code',
+                    visible: false
                 },
             ]
         });
