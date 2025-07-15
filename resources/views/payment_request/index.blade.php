@@ -41,6 +41,7 @@
                             <tr>
                                 <th>Request ID</th>
                                 <th>UserName</th>
+                                <th>Payment Mode</th>
                                 <th>Date</th>
                                 <th>Amount</th>
                                 <th>Action</th>
@@ -88,52 +89,56 @@
 @section('js')
 <script src="{{ asset('assets/js/sweetalert2.min.js') }}"></script>
 <script type="text/javascript">
-    $(function () {
+    $(function() {
         var table = $('.table-datatable').DataTable({
             ajax: {
                 url: "{{ route('payment-request') }}",
                 searching: false,
-                data: function (d) {
+                data: function(d) {
                     d.start_date = $("#start_date").val();
                     d.end_date = $("#end_date").val();
                 }
             },
 
             order: [
-                [2, 'desc']
+                [3, 'desc']
             ],
             columns: [{
-                data: 'request_number',
-                name: 'request_number',
-            },
-            {
-                data: 'user_name',
-                name: 'user_name'
-            },
-            {
-                data: 'updated_at',
-                name: 'updated_at'
-            },
-            {
-                data: 'amount',
-                name: 'amount'
-            },
-            {
-                data: 'action',
-                name: 'action',
-            },
+                    data: 'request_number',
+                    name: 'request_number',
+                },
+                {
+                    data: 'user_name',
+                    name: 'user_name'
+                },
+                {
+                    data: 'payment_mode_name',
+                    name: 'payment_modes.name',
+                },
+                {
+                    data: 'updated_at',
+                    name: 'updated_at'
+                },
+                {
+                    data: 'amount',
+                    name: 'amount'
+                },
+                {
+                    data: 'action',
+                    name: 'action',
+                },
             ]
         });
 
-        $('.update').change(function () {
+        $('.update').change(function() {
             table.draw();
         });
 
-        $('.reset').click(function () {
+        $('.reset').click(function() {
             setTimeout(() => table.draw(), 500)
         });
 
-        $(document).on('click', '.viewDetails', function () {
+        $(document).on('click', '.viewDetails', function() {
             var data = $(this).data('data');
             var path = "{{ asset('storage/') }}"
             $('.requestMoney .card-title-2').text(data.request_id || "")
@@ -157,7 +162,7 @@
         })
 
         const updateStatus = vData => {
-            $.post("{{ route('payment-request') }}", vData, function (data) {
+            $.post("{{ route('payment-request') }}", vData, function(data) {
                 if (data.status == true) {
                     table.draw();
                     swal.close();
@@ -169,7 +174,7 @@
             })
         }
 
-        $(document).on('click', '.updateStatus', function () {
+        $(document).on('click', '.updateStatus', function() {
             var data = {
                 id: $(this).data('id'),
                 type: $(this).data('type'),

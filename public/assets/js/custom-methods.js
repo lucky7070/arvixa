@@ -103,6 +103,11 @@
 		return this.optional(element) || regexp.test(value);
 	}, "Please provide valid indian mobile number.");
 
+	$.validator.addMethod("upiId", function (value, element) {
+		var regexp = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9]+$/;
+		return this.optional(element) || regexp.test(value);
+	}, "Please provide a valid UPI ID (e.g., username@upi)");
+
 	$.validator.addMethod("ifsc", function (value, element) {
 		var regexp = new RegExp(/^[A-Za-z]{4}0[A-Z0-9a-z]{6}$/);
 		return this.optional(element) || regexp.test(value);

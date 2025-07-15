@@ -47,8 +47,10 @@ class PaymentRequestController extends Controller
                 'main_distributors.mobile as m_mobile',
                 'distributors.mobile as d_mobile',
                 'retailers.mobile as r_mobile',
+                'payment_modes.name as payment_mode_name'
             );
 
+            $query->join('payment_modes', 'payment_modes.id', 'payment_requests.payment_mode_id');
             $query->leftJoin('main_distributors', function ($join) {
                 $join->on('main_distributors.id', '=', 'payment_requests.user_id');
                 $join->where('user_type', 2);

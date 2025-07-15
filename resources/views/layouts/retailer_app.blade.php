@@ -105,6 +105,9 @@
 
             <ul class="navbar-item flex-row ms-lg-auto ms-0 action-area">
                 <li class="nav-item theme-text">
+                    <a href="{{ route('retailer.wallet') }}" class="border p-2 rounded fw-bold fs-6 text-primary">Balance: ₹ {{ round(auth('retailer')->user()->user_balance, 2) }}</a>
+                </li>
+                <li class="nav-item theme-text">
                     <ul class="list-unstyled d-flex gap-1 social-icon">
                         <li class="bg-blue rounded-circle">
                             <a href="{{ $site_settings['twitter'] }}" rel="noreferrer" target="_blank"
@@ -152,6 +155,9 @@
                                     <h5>{{ Auth::guard('retailer')->user()->name }}</h5>
                                     <p class="text-secondary fw-bold">
                                         {{ Auth::guard('retailer')->user()->mobile }}
+                                    </p>
+                                    <p class="text-danger fw-bold">
+                                        Bal: ₹ {{ round(auth('retailer')->user()->user_balance, 2) }}
                                     </p>
                                 </div>
                             </div>
@@ -275,7 +281,7 @@
             <div class="layout-px-spacing">
                 <div class="middle-content container-xxl p-0">
                     <div class="row layout-top-spacing d-flex">
-                        @if (request()->is('retailer/product/*') == false && request()->is('retailer/product') == false)
+                        @if (request()->is('retailer/product/*') == false && request()->is('retailer/product') == false && request()->is('retailer/request-money') == false)
                         <div class="col-lg-3 col-md-12 col-sm-12 col-12 layout-spacing">
                             <div class="card rounded-4 wallet-card">
                                 <div class="card-body">

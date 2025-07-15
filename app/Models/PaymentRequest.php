@@ -18,6 +18,7 @@ class PaymentRequest extends Model
 
     protected $fillable = [
         'user_id',
+        'payment_mode_id',
         'request_number',
         'user_type',
         'title',

@@ -22,6 +22,7 @@ use App\Http\Controllers\PaymentRequestController;
 use App\Http\Controllers\UPIPaymentController;
 use App\Http\Controllers\MainDistributorController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\PaymentModeController;
 use App\Http\Controllers\Reports\PanCardController;
 use App\Http\Controllers\Reports\ElectricityController;
 use App\Http\Controllers\Reports\ITRController;
@@ -135,6 +136,13 @@ Route::middleware(['auth', 'permission', 'authCheck'])->group(function () {
     Route::get('upi-payment', [UPIPaymentController::class, 'upi_payment'])->name('upi-payment')->middleware('isAllow:123,can_view');
     Route::post('upi-payment', [UPIPaymentController::class, 'upi_payment_update'])->name('upi-payment')->middleware('isAllow:123,can_edit');
     Route::get('upi-payment/export', [UPIPaymentController::class, 'upi_payment_export'])->name('upi-payment.export')->middleware('isAllow:123,can_view');
+
+    // ----------------------- Payment Mode Routes ----------------------------------------------------
+    Route::get('payment-modes', [PaymentModeController::class, 'index'])->name('payment-modes')->middleware('isAllow:124,can_view');
+    Route::post('payment-modes', [PaymentModeController::class, 'save'])->name('payment-modes')->middleware('isAllow:124,can_add');
+    Route::put('payment-modes', [PaymentModeController::class, 'update'])->name('payment-modes')->middleware('isAllow:124,can_edit');
+    Route::delete('payment-modes', [PaymentModeController::class, 'delete'])->name('payment-modes.delete')->middleware('isAllow:124,can_delete');
+
 
     // ----------------------- States Routes ----------------------------------------------------
     Route::get('states', [StateController::class, 'index'])->name('states')->middleware('isAllow:110,can_view');

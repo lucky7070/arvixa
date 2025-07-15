@@ -17,6 +17,7 @@ use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use App\Http\Controllers\Common\LedgerController;
+use App\Models\PaymentMode;
 use App\Models\UpiPayments;
 
 class ProfileController extends Controller
@@ -197,9 +198,6 @@ class ProfileController extends Controller
     public function request_money(Request $request)
     {
         $user = Auth::guard($this->route)->user();
-        if ($user == null) {
-            return redirect()->route($this->route . '/dashboard')->with('error', 'Path not Valid.');
-        }
 
         $role           = $this->role;
         $user['route']  = $this->route;
@@ -207,9 +205,10 @@ class ProfileController extends Controller
 
         $route_name =  Route::getCurrentRoute()->getName();
         if ($request->ajax()) {
-            $query = PaymentRequest::select('id', 'request_number', 'amount', 'title', 'reason', 'description', 'attachment', 'status', 'created_at')
+            $query = PaymentRequest::select('payment_requests.id', 'payment_requests.request_number',  'payment_requests.amount', 'payment_requests.title', 'payment_requests.reason', 'payment_requests.description', 'payment_requests.attachment', 'payment_requests.status', 'payment_requests.created_at', 'payment_modes.name as payment_mode_name')
                 ->where('user_id', $user['id'])
-                ->where('user_type', $user_type);
+                ->where('user_type', $user_type)
+                ->join('payment_modes', 'payment_modes.id', 'payment_requests.payment_mode_id');
 
             return Datatables::of($query)->addIndexColumn()
                 ->editColumn('request_number', function ($row) {
@@ -218,8 +217,8 @@ class ProfileController extends Controller
                 ->editColumn('created_at', function ($row) {
                     return $row['created_at'] ? $row['created_at']->format('d M, Y') : '';
                 })
-                ->editColumn('title', function ($row) {
-                    return Str::limit($row['title'], 30, '...');
+                ->editColumn('amount', function ($row) {
+                    return  '<b class="text-primary">₹ ' . $row['amount'] . '</b>';
                 })
                 ->editColumn('status', function ($row) {
                     $html = '';
@@ -231,11 +230,42 @@ class ProfileController extends Controller
                 ->orderColumn('created_at', function ($query, $order) {
                     $query->orderBy('created_at', $order);
                 })
-                ->rawColumns(['request_number', 'status'])
+                ->rawColumns(['request_number', 'status', 'amount'])
                 ->make(true);
         }
 
-        return view('profile.request_money', compact('user', 'role', 'route_name', 'user_type'));
+        $paymodesAll = PaymentMode::where('status', 1)->get();
+        $paymodes =  $paymodesAll->groupBy('type')->toArray();
+        ksort($paymodes);
+
+        $indianBanks = [
+            [
+                'name' => "State Bank of India (SBI)",
+                'link' => "https://retail.onlinesbi.sbi/retail/login.htm"
+            ],
+            [
+                'name' => "HDFC Bank",
+                'link' => "https://www.hdfcbank.com/personal/ways-to-bank/online-banking/net-banking"
+            ],
+            [
+                'name' => "ICICI Bank",
+                'link' => "https://infinity.icicibank.com/corp/Login.jsp"
+            ],
+            [
+                'name' => "Bank of Baroda",
+                'link' => "https://www.bobibanking.com/"
+            ],
+            [
+                'name' => "Punjab National Bank (PNB)",
+                'link' => "https://www.netpnb.com/"
+            ],
+            [
+                'name' => "Axis Bank",
+                'link' => "https://omni.axisbank.co.in/"
+            ],
+        ];
+
+        return view('profile.request_money', compact('user', 'role', 'route_name', 'user_type', 'paymodes', 'paymodesAll', 'indianBanks'));
     }
 
     public function request_money_save(Request $request)
@@ -251,9 +281,10 @@ class ProfileController extends Controller
 
         $user_type = $this->user_type;
         $validator = Validator::make($request->all(), [
-            'amount'        => ['required', 'numeric', 'min:1', 'max:100000'],
-            'description'   => ['required', 'string', 'max:500'],
-            'attachment'    => ['mimes:jpg,png,jpeg,pdf', 'max:2048'],
+            'payment_mode_id'   => ['required', 'numeric', 'min:1', 'exists:payment_modes,id'],
+            'amount'            => ['required', 'numeric', 'min:1', 'max:100000'],
+            'description'       => ['required', 'string', 'max:500'],
+            'attachment'        => ['mimes:jpg,png,jpeg,pdf', 'max:2048'],
         ]);
 
         if ($validator->fails()) {
@@ -272,13 +303,14 @@ class ProfileController extends Controller
         } else {
 
             $data = [
-                'request_number' => Str::uuid(),
-                'user_id'       => $user['id'],
-                'user_type'     => $user_type,
-                'amount'        => $request->amount,
-                'title'         => "Load Money :: " . $user->mobile . " (" . $user->userId . ")",
-                'description'   => filter_var($request->description, FILTER_SANITIZE_FULL_SPECIAL_CHARS),
-                'status'        => 0,
+                'request_number'    => Str::uuid(),
+                'payment_mode_id'   => $request->payment_mode_id,
+                'user_id'           => $user['id'],
+                'user_type'         => $user_type,
+                'amount'            => $request->amount,
+                'title'             => "Load Money :: " . $user->mobile . " (" . $user->userId . ")",
+                'description'       => filter_var($request->description, FILTER_SANITIZE_FULL_SPECIAL_CHARS),
+                'status'            => 0,
             ];
 
             $path = 'payment-request';

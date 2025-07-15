@@ -32,20 +32,20 @@
                 </div>
             </a>
         </li>
-        @if(userCan([102,103,104,105,106,112,116]))
+        @if(userCan([102,103,104,105,106,112,116,124]))
         <li
-            class="menu @routeis('roles,users,main_distributors,distributors,retailers,customers,services,employees') active @endrouteis">
+            class="menu @routeis('roles,users,main_distributors,distributors,retailers,customers,services,employees,payment-modes') active @endrouteis">
             <a href="#master" data-bs-toggle="collapse"
-                aria-expanded="{{ routeis('roles,users,main_distributors,distributors,retailers,customers,services,employees') }}"
+                aria-expanded="{{ routeis('roles,users,main_distributors,distributors,retailers,customers,services,employees,payment-modes') }}"
                 class="dropdown-toggle">
                 <div class="">
                     <i class="fa-solid fa-sparkles"
-                        aria-hidden="{{ routeis('roles,users,main_distributors,distributors,retailers,customers,services,employees') }}"></i>
+                        aria-hidden="{{ routeis('roles,users,main_distributors,distributors,retailers,customers,services,employees,payment-modes') }}"></i>
                     <span>Master</span>
                 </div>
                 <div> <i class="fa-solid fa-chevron-right"></i> </div>
             </a>
-            <ul class="collapse submenu list-unstyled @routeis('roles,users,main_distributors,distributors,retailers,customers,services,employees') show @endrouteis"
+            <ul class="collapse submenu list-unstyled @routeis('roles,users,main_distributors,distributors,retailers,customers,services,employees,payment-modes') show @endrouteis"
                 id="master" data-bs-parent="#accordionExample">
                 @if(userCan(102))
                 <li class="@routeis('roles') active @endrouteis">
@@ -106,6 +106,15 @@
                     </a>
                 </li>
                 @endif
+
+                @if(userCan(124))
+                <li class="@routeis('payment-modes') active @endrouteis">
+                    <a class="nav-link" href="{{ route('payment-modes') }}" data-bs-toggle="" aria-expanded="false">
+                        <div class="d-flex align-items-center"><span class="nav-link-text ps-1">Payment Modes</span></div>
+                    </a>
+                </li>
+                @endif
+
             </ul>
         </li>
         @endif
