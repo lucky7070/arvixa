@@ -48,62 +48,6 @@
             </div>
         </div>
     </div>
-
-    <div class="col-lg-12">
-        <div class="card">
-            <div class="card-header">
-                <h5 class="mb-0">Default Board</h5>
-            </div>
-            <div class="card-body">
-                <form method="POST" action="{{ route('retailer.default-board-save') }}">
-                    <div class="row">
-                        <div class="col-md-12 mb-2">
-                            <label for="default_electricity_board" class="form-label">Select Electricity Board</label>
-                            @csrf
-                            <select class="form-control" name="default_electricity_board" id="default_electricity_board">
-                                <option value=""> -- Select Board --</option>
-                                @foreach($providers['electricity'] ?? [] as $provider)
-                                <option value="{{ $provider->id }}" @selected($user->default_electricity_board == $provider->id)>{{ $provider->name }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-
-                        <div class="col-md-12 mb-2">
-                            <label for="default_water_board" class="form-label">Select Water Board</label>
-                            <select class="form-control" name="default_water_board" id="default_water_board">
-                                <option value=""> -- Select Board --</option>
-                                @foreach($providers['water'] ?? [] as $provider)
-                                <option value="{{ $provider->id }}" @selected($user->default_water_board == $provider->id)>{{ $provider->name }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div class="col-md-12 mb-2">
-                            <label for="default_gas_board" class="form-label">Select Gas Board</label>
-                            <select class="form-control" name="default_gas_board" id="default_gas_board">
-                                <option value=""> -- Select Board --</option>
-                                @foreach($providers['gas'] ?? [] as $provider)
-                                <option value="{{ $provider->id }}" @selected($user->default_gas_board == $provider->id)>{{ $provider->name }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div class="col-md-12 mb-2">
-                            <label for="default_lic_board" class="form-label">Select LIC Board</label>
-                            <select class="form-control" name="default_lic_board" id="default_lic_board">
-                                <option value=""> -- Select Board --</option>
-                                @foreach($providers['lic'] ?? [] as $provider)
-                                <option value="{{ $provider->id }}" @selected($user->default_lic_board == $provider->id)>{{ $provider->name }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-
-                        <div class="col-md-12">
-                            <button type="submit" class="btn btn-primary px-4">Save</button>
-                        </div>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
 </div>
 
 <div class="modal fade" id="commissionModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">

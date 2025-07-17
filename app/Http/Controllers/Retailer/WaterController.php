@@ -55,7 +55,8 @@ class WaterController extends Controller
         if (!$serviceLog)
             return to_route('retailer.dashboard')->with('error', "Service Can't be used..!!");
 
-        $providers = Provider::where('type', 'water')->get();
+        $providers  = Provider::where('type', 'water')->get();
+        $service    = Services::find($this->service_id);
 
         $receipt = route('retailer.water-download.receipt', '') . '/';
         $resent = Bill::select('bills.id', 'bills.transaction_id', 'bills.consumer_name', 'bills.consumer_no', 'bills.bill_no', 'bills.created_at', 'bills.due_date', 'bills.bill_amount', 'bills.bu_code', 'bills.commission', 'bills.tds', 'providers.name as provider_name')
@@ -66,7 +67,7 @@ class WaterController extends Controller
             ->latest()
             ->get();
 
-        return view('my_services.water.create', compact('providers', 'resent', 'receipt'));
+        return view('my_services.water.create', compact('providers', 'resent', 'receipt', 'service'));
     }
 
     public function getDetails(Request $request)

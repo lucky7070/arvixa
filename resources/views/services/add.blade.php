@@ -155,6 +155,17 @@
                 </span>
                 @enderror
             </div>
+
+            <div class="col-lg-12 mt-2">
+                <label class="form-label" for="notice">Notice</label>
+                <textarea name="notice" id="notice" class="form-control">{{ old('notice') }}</textarea>
+                @error('notice')
+                <span class="invalid-feedback" role="alert">
+                    <strong>{{ $message }}</strong>
+                </span>
+                @enderror
+            </div>
+
             <div class="col-lg-6 mt-2">
                 <label class="form-label" for="image">Image </label>
                 <input class="form-control" id="image" name="image" type="file" value="" />
@@ -194,8 +205,7 @@
 @section('js')
 <script src="{{ asset('assets/plugins/summernote-0.8.18-dist/summernote.min.js') }}"></script>
 <script type="text/javascript">
-
-    $(document).ready(function () {
+    $(document).ready(function() {
         $('#description').summernote({
             toolbar: [
                 ['style', ['style']],
@@ -211,7 +221,7 @@
 
         let buttons = $('.note-editor button[data-toggle="dropdown"]');
         buttons.each((key, value) => {
-            $(value).on('click', function (e) {
+            $(value).on('click', function(e) {
                 $(this).attr('data-bs-toggle', 'dropdown')
 
             })
@@ -287,12 +297,17 @@
                     extension: "Supported Format Only : jpg, jpeg, png"
                 }
             },
-            submitHandler: function (form, event) {
+            submitHandler: function(form, event) {
                 event.preventDefault();
                 const data = new FormData(form);
                 const objData = {};
                 data.forEach((value, key) => (objData[key] = parseFloat(value)));
-                var { purchase_rate, sale_rate, default_d_commission, default_md_commission } = objData
+                var {
+                    purchase_rate,
+                    sale_rate,
+                    default_d_commission,
+                    default_md_commission
+                } = objData
                 if (sale_rate > (purchase_rate + default_d_commission + default_md_commission)) {
                     form.submit()
                 } else {

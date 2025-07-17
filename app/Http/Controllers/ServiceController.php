@@ -81,6 +81,7 @@ class ServiceController extends Controller
             'btn_text'              => ['required', 'string', 'max:255'],
             'image'                 => ['image', 'mimes:jpg,png,jpeg', 'max:2048'],
             'banner'                => ['image', 'mimes:jpg,png,jpeg', 'max:2048'],
+            'notice'                => ['nullable', 'string', 'max:200'],
         ]);
 
         $data = [
@@ -96,6 +97,7 @@ class ServiceController extends Controller
             'status'                => $request->status,
             'is_feature'            => $request->is_feature,
             'btn_text'              => $request->btn_text,
+            'notice'                => $request->notice,
             'commission_slots'      => config('constant.bill-slab', []),
             'banner'                => 'services/banner.jpg',
             'image'                 => 'services/image.png',
@@ -150,6 +152,7 @@ class ServiceController extends Controller
             'btn_text'              => ['required', 'string', 'min:5', 'max:20'],
             'image'                 => ['image', 'mimes:jpg,png,jpeg', 'max:2048'],
             'banner'                => ['image', 'mimes:jpg,png,jpeg', 'max:2048'],
+            'notice'                => ['nullable', 'string', 'max:200'],
         ]);
 
         $data = [
@@ -159,6 +162,7 @@ class ServiceController extends Controller
             'is_feature'            => $validated['is_feature'],
             'btn_text'              => $validated['btn_text'],
             'status'                => $validated['status'],
+            'notice'                => $validated['notice'],
         ];
 
         $path = 'services';

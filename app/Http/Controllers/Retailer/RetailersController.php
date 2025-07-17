@@ -43,11 +43,8 @@ class RetailersController extends Controller
             ->orderBy('services.id', 'asc')
             ->get();
 
-        $user = $request->user();
-        $providers = Provider::get()->groupBy('type');
-        return view('retailer.commission', compact('servicesLog', 'user', 'providers'));
+        return view('retailer.commission', compact('servicesLog'));
     }
-
 
     public function default_board_save(Request $request)
     {
@@ -59,7 +56,7 @@ class RetailersController extends Controller
         ]);
 
         Retailer::where('id', auth('retailer')->id())->update($validated);
-        return to_route('retailer.my-commission')->withSuccess('Default Board updated successfully..!!');
+        return to_route('retailer.profile')->withSuccess('Default Board updated successfully..!!');
     }
 
     public function update_board(Request $request)

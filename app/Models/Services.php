@@ -26,6 +26,7 @@ class Services extends Model
         'default_assign',
         'is_feature',
         'btn_text',
+        'notice',
     ];
 
     protected $casts = [

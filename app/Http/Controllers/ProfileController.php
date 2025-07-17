@@ -18,6 +18,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use App\Http\Controllers\Common\LedgerController;
 use App\Models\PaymentMode;
+use App\Models\Provider;
 use App\Models\UpiPayments;
 
 class ProfileController extends Controller
@@ -69,7 +70,9 @@ class ProfileController extends Controller
         $role           = $this->role;
         $user['route']  = $this->route;
         $states         = State::where('status', 1)->get();
-        return view('profile.update', compact('user', 'role', 'states'));
+        $providers      = Provider::get()->groupBy('type');
+        $user           = $request->user();
+        return view('profile.update', compact('user', 'role', 'states', 'user', 'providers'));
     }
 
     public function update_password(Request $request)

@@ -89,6 +89,17 @@
                 </span>
                 @enderror
             </div>
+
+            <div class="col-lg-12 mt-2">
+                <label class="form-label" for="notice">Notice</label>
+                <textarea name="notice" id="notice" class="form-control">{{ old('notice', $service['notice']) }}</textarea>
+                @error('notice')
+                <span class="invalid-feedback" role="alert">
+                    <strong>{{ $message }}</strong>
+                </span>
+                @enderror
+            </div>
+
             <div class="col-lg-6 mt-2">
                 <label class="form-label" for="image">Image</label>
                 <div class="img-group mb-2">
