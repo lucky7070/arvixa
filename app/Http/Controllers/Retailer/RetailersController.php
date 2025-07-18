@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Retailer;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Models\BannerAdmin;
+use App\Models\Bill;
 use App\Models\Provider;
 use App\Models\ServicesLog;
 use App\Models\Retailer;
@@ -43,7 +44,45 @@ class RetailersController extends Controller
             ->orderBy('services.id', 'asc')
             ->get();
 
-        return view('retailer.commission', compact('servicesLog'));
+
+        $userBills = Bill::where('user_id', auth()->guard('retailer')->id())->where('status', 1)->get();
+        $now                = now();
+        $startOfMonth       = $now->startOfMonth();
+        $startOfLastMonth   = $now->copy()->subMonth()->startOfMonth();
+        $lastMonthTillDate  = $now->copy()->subMonth();
+
+        $calculateStats = function ($bills, $billType) use ($startOfMonth, $startOfLastMonth, $lastMonthTillDate) {
+            $filtered = $bills->where('bill_type', $billType);
+
+            $currentMonth = $filtered->filter(fn($r) => $r->created_at->gte($startOfMonth));
+            $lastMonth = $filtered->filter(fn($r) => $r->created_at->between($startOfLastMonth, $startOfMonth));
+            $lastMonthTill = $filtered->filter(fn($r) => $r->created_at->between($startOfLastMonth, $lastMonthTillDate));
+
+            return [
+                'total_bill_value'                  => $filtered->sum('bill_amount'),
+                'total_commission'                  => $filtered->sum('commission'),
+                'current_month_bill_value'          => $currentMonth->sum('bill_amount'),
+                'current_month_commission'          => $currentMonth->sum('commission'),
+                'last_month_bill_value'             => $lastMonth->sum('bill_amount'),
+                'last_month_commission'             => $lastMonth->sum('commission'),
+                'last_month_till_date_bill_value'   => $lastMonthTill->sum('bill_amount'),
+                'last_month_till_date_commission'   => $lastMonthTill->sum('commission'),
+            ];
+        };
+
+        $billTypes = [
+            'electricity'   => ['name' => 'Electricity Bill'],
+            'water'         => ['name' => 'Water Bill'],
+            'gas'           => ['name' => 'Gas Payment'],
+            'lic'           => ['name' => 'LIC Premium'],
+        ];
+
+        $statistics = [];
+        foreach ($billTypes as $type => $data) {
+            $statistics[] = [...$data, ...$calculateStats($userBills, $type)];
+        }
+      
+        return view('retailer.commission', compact('servicesLog', 'statistics'));
     }
 
     public function default_board_save(Request $request)

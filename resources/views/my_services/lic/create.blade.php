@@ -57,7 +57,7 @@
                         </div>
                         <div class="col-md-6 mb-3">
                             <label for="dob">DOB Date</label>
-                            <input type="date" class="form-control text-dark" name="dob">
+                            <input type="date" class="form-control text-dark" name="dob" max="{{ date('Y-m-d') }}">
                         </div>
                         <div class="col-md-12">
                             <button type="submit" class="btn btn-primary px-4">Fetch Bill</button>
@@ -85,6 +85,10 @@
                         <div class="col-md-3 mb-3">
                             <label for="bill_amount">Amount</label>
                             <input type="number" class="form-control text-dark bill-amount" name="bill_amount">
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label for="due_date">Due Date</label>
+                            <input type="date" class="form-control text-dark due-date" name="due_date" min="{{ date('Y-m-d') }}">
                         </div>
                         <div class="col-md-12">
                             <button type="submit" class="btn btn-primary px-4">Pay Bill</button>
@@ -180,7 +184,7 @@
                     minlength: 5,
                     maxlength: 50
                 },
-                date: {
+                dob: {
                     date: true,
                     required: true
                 },
@@ -198,8 +202,8 @@
                     minlength: "Email must be at least 5 characters.",
                     maxlength: "Email cannot exceed 50 characters."
                 },
-                due_date: {
-                    required: "Please select due date",
+                dob: {
+                    required: "Please select dob date",
                     date: "Please enter a valid date"
                 }
             },
@@ -216,6 +220,7 @@
                         if (data.status) {
                             $('.consumer-name').val(data.data.consumer_name);
                             $('.bill-amount').val(data.data.bill_amount);
+                            $('.due-date').val(data.data.due_date);
                             $('#transaction-id').val(data.data.transaction_id)
                             $('#bill-details').show()
                             toastr.success(data.message);
@@ -248,6 +253,16 @@
                     min: 1,
                     max: 9999999
                 },
+                bill_amount: {
+                    required: true,
+                    number: true,
+                    min: 1,
+                    max: 9999999
+                },
+                due_date: {
+                    date: true,
+                    required: true
+                },
             },
             messages: {
                 consumer_name: {
@@ -261,7 +276,10 @@
                     min: "Bill amount must be at least 1",
                     max: "Bill amount cannot exceed 9,999,999"
                 },
-
+                due_date: {
+                    required: "Please select due date",
+                    date: "Please enter a valid date"
+                }
             },
             submitHandler: function(form) {
                 const submitBtn = $(form).find('button[type="submit"]');

@@ -137,7 +137,7 @@ class LicController extends Controller
                     'bill_no'           => $request->email,
                     'bu_code'           => $request->dob,
                     'bill_amount'       => null,
-                    'due_date'          => now(),
+                    'due_date'          => null,
                 ]);
 
                 return response()->json([
@@ -160,9 +160,8 @@ class LicController extends Controller
         $request->validate([
             'transaction_id'        => ['required', 'string', 'min:2', 'max:100'],
             'bill_amount'           => ['required', 'numeric', 'min:2', 'max:1000000'],
-            'consumer_name'         => ['required', 'string', 'min:2', 'max:100']
-
-            // 
+            'consumer_name'         => ['required', 'string', 'min:2', 'max:100'],
+            'due_date'              => ['required', 'string', 'after_or_equal:today'],
         ]);
 
         $data = FetchBill::where('transaction_id', $request->get('transaction_id'))->where('user_id', $this->user_id)->where('service_id', $this->service_id)->first();
@@ -220,7 +219,7 @@ class LicController extends Controller
             'consumer_name'                 => $consumer_name,
             'bill_amount'                   => $amountDue,
             'bill_type'                     => 'lic',
-            'due_date'                      => $data->due_date,
+            'due_date'                      => $request->due_date,
             'commission'                    => $commission,
             'tds'                           => $tds_amount,
             'bill_no'                       => $data->bill_no,

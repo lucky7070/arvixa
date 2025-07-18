@@ -10,7 +10,6 @@ class Bill extends Model
 {
     use HasFactory, SoftDeletes;
 
-    // Table name (optional if Laravel naming convention is followed)
     protected $table = 'bills';
 
     // Mass assignable fields

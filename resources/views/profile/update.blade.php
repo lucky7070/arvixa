@@ -1,9 +1,14 @@
 @extends('layouts.'.($user['route'] != 'web' ? $user['route'].'_': '').'app')
 
+@section('css')
+<link href="{{ asset('assets/css/tom-select.default.min.css') }}" rel="stylesheet" type="text/css" />
+<link href="{{ asset('assets/css/custom-tomSelect.css') }}" rel="stylesheet" type="text/css" />
+@endsection
+
+
 @section('content')
 
 @include('partial.common.user_box')
-
 <div class="row g-0">
     <div class="col-lg-8 pe-lg-2">
         <div class="card mb-3">
@@ -197,6 +202,20 @@
 
 
 @section('js')
+
+@if($user['route'] == 'retailer')
+<script src="{{ asset('assets/js/tom-select.base.js') }}"></script>
+<script>
+    $(function() {
+
+        new TomSelect("#default_electricity_board");
+        new TomSelect("#default_water_board");
+        new TomSelect("#default_gas_board");
+        new TomSelect("#default_lic_board");
+    });
+</script>
+@endif
+
 <script>
     var city_id = "{{ old('city_id', $user['city_id']) }}";
 
@@ -320,5 +339,4 @@
         }, 500);
     });
 </script>
-
 @endsection

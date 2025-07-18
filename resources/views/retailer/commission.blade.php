@@ -1,10 +1,5 @@
 @extends('layouts.retailer_app')
 
-@section('css')
-<link href="{{ asset('assets/css/tom-select.default.min.css') }}" rel="stylesheet" type="text/css" />
-<link href="{{ asset('assets/css/custom-tomSelect.css') }}" rel="stylesheet" type="text/css" />
-@endsection
-
 @section('content')
 <div class="row">
     <div class="col-lg-12 mb-3">
@@ -48,6 +43,55 @@
             </div>
         </div>
     </div>
+    <div class="col-lg-12 mb-3">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="card-title">Bill Payment Statistics</h4>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-sm table-bordered table-striped text-center">
+                        <thead>
+                            <tr>
+                                <th rowspan="2">#</th>
+                                <th rowspan="2">Service Name</th>
+                                <th colspan="2" class="fw-bold">Current Month</th>
+                                <th colspan="2" class="fw-bold">Last Month</th>
+                                <th colspan="2" class="fw-bold">Last Month till Date</th>
+                                <th colspan="2" class="fw-bold">All Over</th>
+                            </tr>
+                            <tr>
+                                <th scope="col">Bill Pay</th>
+                                <th scope="col">Commission</th>
+                                <th scope="col">Bill Pay</th>
+                                <th scope="col">Commission</th>
+                                <th scope="col">Bill Pay</th>
+                                <th scope="col">Commission</th>
+                                <th scope="col">Bill Pay</th>
+                                <th scope="col">Commission</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($statistics as $key => $row)
+                            <tr>
+                                <th scope="row">{{ $key + 1 }}</th>
+                                <td>{{ $row['name'] }}</td>
+                                <td>₹ {{ $row['current_month_bill_value'] }}</td>
+                                <td>₹ {{ $row['current_month_commission'] }}</td>
+                                <td>₹ {{ $row['last_month_bill_value'] }}</td>
+                                <td>₹ {{ $row['last_month_commission'] }}</td>
+                                <td>₹ {{ $row['last_month_till_date_bill_value'] }}</td>
+                                <td>₹ {{ $row['last_month_till_date_commission'] }}</td>
+                                <td>₹ {{ $row['total_bill_value'] }}</td>
+                                <td>₹ {{ $row['total_commission'] }}</td>
+                            </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
 <div class="modal fade" id="commissionModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
@@ -75,27 +119,18 @@
 </div>
 @endsection
 
-
 @section('js')
-<script src="{{ asset('assets/js/tom-select.base.js') }}"></script>
 <script>
     $(function() {
-        new TomSelect("#default_electricity_board");
-        new TomSelect("#default_water_board");
-        new TomSelect("#default_gas_board");
-        new TomSelect("#default_lic_board");
-
-
         $('.details').on('click', function() {
             const data = $(this).data('all');
-            console.log(data);
             if (data && Array.isArray(data)) {
                 let html = '';
                 data.forEach((r, i) => {
                     html += `<tr>
                             <td scope="row">${i + 1}</td>
-                            <td>${r.start}</td>
-                            <td>${r.end}</td>
+                            <td>₹ ${r.start}</td>
+                            <td>₹ ${r.end}</td>
                             <td>${r.commission}%</td>
                         </tr>`
                 })
